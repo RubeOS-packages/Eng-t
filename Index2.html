@@ -1,0 +1,3028 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="AI-Powered English Textbook Assistant with Bengali Translation">
+    <title>EduLingua AI - Professional Textbook Analysis Platform</title>
+    
+    <!-- External Libraries -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    
+    <!-- Tailwind Configuration -->
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        primary: {
+                            50: '#eef2ff',
+                            100: '#e0e7ff',
+                            500: '#6366f1',
+                            600: '#4f46e5',
+                            700: '#4338ca',
+                            900: '#312e81'
+                        },
+                        essence: {
+                            bg: '#fffbeb',
+                            border: '#f59e0b',
+                            text: '#92400e'
+                        },
+                        family: {
+                            bg: '#eff6ff',
+                            border: '#3b82f6',
+                            text: '#1e40af'
+                        },
+                        bengali: {
+                            text: '#64748b',
+                            bg: '#f8fafc'
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'system-ui', 'sans-serif'],
+                        bengali: ['Noto Sans Bengali', 'Kalpurush', 'sans-serif'],
+                        mono: ['JetBrains Mono', 'Consolas', 'monospace']
+                    },
+                    animation: {
+                        'fade-in': 'fadeIn 0.5s ease-in-out',
+                        'slide-up': 'slideUp 0.3s ease-out',
+                        'pulse-slow': 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+                        'bounce-slight': 'bounceSlight 0.3s ease-in-out'
+                    },
+                    keyframes: {
+                        fadeIn: {
+                            '0%': { opacity: '0' },
+                            '100%': { opacity: '1' }
+                        },
+                        slideUp: {
+                            '0%': { transform: 'translateY(10px)', opacity: '0' },
+                            '100%': { transform: 'translateY(0)', opacity: '1' }
+                        },
+                        bounceSlight: {
+                            '0%, 100%': { transform: 'translateY(0)' },
+                            '50%': { transform: 'translateY(-2px)' }
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Noto+Sans+Bengali:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+
+    <!-- Custom Styles -->
+    <style>
+        /* CSS Reset and Base Styles */
+        *, *::before, *::after {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        html {
+            scroll-behavior: smooth;
+            font-size: 16px;
+        }
+
+        body {
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+            background-color: #f8f9fa;
+            color: #1e293b;
+            line-height: 1.6;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+            overflow-x: hidden;
+        }
+
+        /* Dark Mode Base Styles */
+        body.dark {
+            background-color: #0f172a;
+            color: #e2e8f0;
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 10px;
+            height: 10px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 5px;
+            border: 2px solid transparent;
+            background-clip: padding-box;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+        }
+
+        body.dark ::-webkit-scrollbar-thumb {
+            background: #475569;
+        }
+
+        body.dark ::-webkit-scrollbar-thumb:hover {
+            background: #64748b;
+        }
+
+        /* Typography Enhancements */
+        .text-bengali {
+            font-family: 'Noto Sans Bengali', 'Kalpurush', sans-serif;
+            line-height: 1.8;
+        }
+
+        .font-mono {
+            font-family: 'JetBrains Mono', Consolas, monospace;
+        }
+
+        /* Speech Bubble Architecture */
+        .speech-bubble {
+            position: relative;
+            border-radius: 1.25rem;
+            padding: 1.25rem;
+            margin: 1rem 0;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+            transition: all 0.3s ease;
+        }
+
+        .speech-bubble:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        .speech-bubble::before {
+            content: '';
+            position: absolute;
+            left: -12px;
+            top: 24px;
+            border: 12px solid transparent;
+            border-right-color: inherit;
+            border-right-width: 14px;
+        }
+
+        /* Family Tree Visualization */
+        .family-tree-container {
+            position: relative;
+            padding: 2rem;
+            background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);
+            border-radius: 1rem;
+            border: 2px solid #3b82f6;
+        }
+
+        body.dark .family-tree-container {
+            background: linear-gradient(135deg, #1e3a8a 0%, #1e40af 100%);
+            border-color: #60a5fa;
+        }
+
+        .family-node {
+            position: relative;
+            z-index: 10;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .family-node:hover {
+            transform: scale(1.05);
+        }
+
+        .family-connector {
+            position: absolute;
+            background-color: #3b82f6;
+            z-index: 1;
+        }
+
+        .vertical-connector {
+            width: 2px;
+            height: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+
+        .horizontal-connector {
+            height: 2px;
+            top: 50%;
+            transform: translateY(-50%);
+        }
+
+        /* Accordion Animations */
+        .accordion-content {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.4s cubic-bezier(0, 1, 0, 1);
+        }
+
+        .accordion-content.open {
+            max-height: 2000px;
+            transition: max-height 0.4s ease-in-out;
+        }
+
+        /* Loading Skeletons */
+        .skeleton {
+            background: linear-gradient(90deg, #f1f5f9 25%, #e2e8f0 50%, #f1f5f9 75%);
+            background-size: 200% 100%;
+            animation: skeleton-loading 1.5s infinite;
+            border-radius: 0.5rem;
+        }
+
+        body.dark .skeleton {
+            background: linear-gradient(90deg, #334155 25%, #475569 50%, #334155 75%);
+            background-size: 200% 100%;
+        }
+
+        @keyframes skeleton-loading {
+            0% { background-position: 200% 0; }
+            100% { background-position: -200% 0; }
+        }
+
+        /* Custom Tooltip */
+        .tooltip {
+            position: relative;
+        }
+
+        .tooltip::after {
+            content: attr(data-tooltip);
+            position: absolute;
+            bottom: 100%;
+            left: 50%;
+            transform: translateX(-50%) translateY(-8px);
+            padding: 0.5rem 1rem;
+            background: rgba(0, 0, 0, 0.9);
+            color: white;
+            font-size: 0.875rem;
+            border-radius: 0.5rem;
+            white-space: nowrap;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.2s;
+            z-index: 1000;
+            pointer-events: none;
+        }
+
+        .tooltip:hover::after {
+            opacity: 1;
+            visibility: visible;
+            transform: translateX(-50%) translateY(-4px);
+        }
+
+        /* Print Styles */
+        @media print {
+            .no-print {
+                display: none !important;
+            }
+            
+            .print-only {
+                display: block !important;
+            }
+            
+            body {
+                background: white;
+                color: black;
+            }
+            
+            .speech-bubble {
+                break-inside: avoid;
+                border: 1px solid #ccc;
+                box-shadow: none;
+            }
+        }
+
+        /* Focus Visible for Accessibility */
+        *:focus-visible {
+            outline: 2px solid #6366f1;
+            outline-offset: 2px;
+        }
+
+        /* Selection Colors */
+        ::selection {
+            background: rgba(99, 102, 241, 0.2);
+            color: inherit;
+        }
+
+        /* High Contrast Mode Support */
+        @media (prefers-contrast: high) {
+            .speech-bubble {
+                border: 2px solid currentColor;
+            }
+            
+            .family-tree-container {
+                border-width: 3px;
+            }
+        }
+
+        /* Reduced Motion */
+        @media (prefers-reduced-motion: reduce) {
+            *, *::before, *::after {
+                animation-duration: 0.01ms !important;
+                animation-iteration-count: 1 !important;
+                transition-duration: 0.01ms !important;
+                scroll-behavior: auto !important;
+            }
+        }
+
+        /* Mobile Optimizations */
+        @media (max-width: 768px) {
+            .speech-bubble::before {
+                left: 20px;
+                top: -12px;
+                border: 12px solid transparent;
+                border-bottom-color: inherit;
+                border-right-color: transparent;
+            }
+        }
+
+        /* Drag and Drop Zone */
+        .drag-zone {
+            transition: all 0.3s ease;
+            background-image: repeating-linear-gradient(
+                0deg,
+                transparent,
+                transparent 10px,
+                rgba(99, 102, 241, 0.03) 10px,
+                rgba(99, 102, 241, 0.03) 20px
+            );
+        }
+
+        .drag-zone.drag-over {
+            background-color: rgba(99, 102, 241, 0.1);
+            border-color: #6366f1;
+            transform: scale(1.02);
+        }
+
+        /* Card Hover Effects */
+        .hover-lift {
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .hover-lift:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Gradient Text */
+        .gradient-text {
+            background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        /* Status Indicators */
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            display: inline-block;
+            margin-right: 0.5rem;
+        }
+
+        .status-online { background-color: #10b981; box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.3); }
+        .status-away { background-color: #f59e0b; box-shadow: 0 0 0 2px rgba(245, 158, 11, 0.3); }
+        .status-offline { background-color: #ef4444; box-shadow: 0 0 0 2px rgba(239, 68, 68, 0.3); }
+
+        /* Code Block Styling */
+        pre {
+            background: #1e293b;
+            color: #e2e8f0;
+            padding: 1.5rem;
+            border-radius: 0.75rem;
+            overflow-x: auto;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.875rem;
+            line-height: 1.7;
+        }
+
+        /* Modal Backdrop Blur */
+        .modal-backdrop {
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+        }
+
+        /* Custom Checkbox */
+        .custom-checkbox {
+            appearance: none;
+            width: 1.25rem;
+            height: 1.25rem;
+            border: 2px solid #cbd5e1;
+            border-radius: 0.25rem;
+            cursor: pointer;
+            position: relative;
+            transition: all 0.2s;
+        }
+
+        .custom-checkbox:checked {
+            background-color: #6366f1;
+            border-color: #6366f1;
+        }
+
+        .custom-checkbox:checked::after {
+            content: '✓';
+            position: absolute;
+            color: white;
+            font-size: 0.875rem;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+        }
+
+        /* Toast Notification Container */
+        .toast-container {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            z-index: 9999;
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+
+        /* Responsive Typography Scale */
+        .text-scale-xs { font-size: clamp(0.75rem, 0.7rem + 0.25vw, 0.875rem); }
+        .text-scale-sm { font-size: clamp(0.875rem, 0.8rem + 0.35vw, 1rem); }
+        .text-scale-base { font-size: clamp(1rem, 0.95rem + 0.25vw, 1.125rem); }
+        .text-scale-lg { font-size: clamp(1.125rem, 1rem + 0.625vw, 1.5rem); }
+        .text-scale-xl { font-size: clamp(1.5rem, 1.25rem + 1.25vw, 2.25rem); }
+        .text-scale-2xl { font-size: clamp(2rem, 1.5rem + 2.5vw, 3.5rem); }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
+    <div id="modal-root"></div>
+    <div id="toast-root"></div>
+
+    <script type="text/babel">
+        /**
+         * EDULINGUA AI - ENTERPRISE TEXTBOOK ANALYSIS PLATFORM
+         * Version: 2.0.0
+         * Lines of Code: 3000+
+         * Architecture: Modular React with Context API
+         */
+
+        const { 
+            useState, 
+            useEffect, 
+            useRef, 
+            useContext, 
+            createContext, 
+            useReducer, 
+            useMemo, 
+            useCallback,
+            useLayoutEffect 
+        } = React;
+
+        // ==========================================
+        // GLOBAL CONFIGURATION & CONSTANTS
+        // ==========================================
+        
+        const CONFIG = {
+            APP_NAME: 'EduLingua AI',
+            VERSION: '2.0.0',
+            STORAGE_KEYS: {
+                SETTINGS: 'edulingua_settings_v2',
+                BOOKMARKS: 'edulingua_bookmarks',
+                HISTORY: 'edulingua_history',
+                PREFERENCES: 'edulingua_preferences'
+            },
+            AI_MODELS: {
+                openai: { name: 'GPT-4o Mini', endpoint: 'https://api.openai.com/v1/chat/completions', model: 'gpt-4o-mini' },
+                gemini: { name: 'Gemini 1.5 Flash', endpoint: 'https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent', model: 'gemini-1.5-flash' },
+                claude: { name: 'Claude 3 Haiku', endpoint: 'https://api.anthropic.com/v1/messages', model: 'claude-3-haiku-20240307' }
+            },
+            FAMILY_KEYWORDS: [
+                'father', 'mother', 'parents', 'dad', 'mom', 'son', 'daughter', 'child', 'children',
+                'brother', 'sister', 'siblings', 'uncle', 'aunt', 'nephew', 'niece', 'cousin',
+                'grandfather', 'grandmother', 'grandparents', 'grandson', 'granddaughter',
+                'husband', 'wife', 'spouse', 'family', 'relatives', 'ancestor', 'descendant'
+            ],
+            UI: {
+                DEBOUNCE_DELAY: 300,
+                TOAST_DURATION: 5000,
+                MAX_HISTORY_ITEMS: 50,
+                MAX_BOOKMARKS: 100
+            }
+        };
+
+        // Initialize PDF.js
+        if (typeof pdfjsLib !== 'undefined') {
+            pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+        }
+
+        // ==========================================
+        // UTILITY FUNCTIONS & HELPERS
+        // ==========================================
+
+        /**
+         * Debounce function to limit API calls
+         */
+        const debounce = (func, wait) => {
+            let timeout;
+            return function executedFunction(...args) {
+                const later = () => {
+                    clearTimeout(timeout);
+                    func(...args);
+                };
+                clearTimeout(timeout);
+                timeout = setTimeout(later, wait);
+            };
+        };
+
+        /**
+         * Throttle function for scroll events
+         */
+        const throttle = (func, limit) => {
+            let inThrottle;
+            return function(...args) {
+                if (!inThrottle) {
+                    func.apply(this, args);
+                    inThrottle = true;
+                    setTimeout(() => inThrottle = false, limit);
+                }
+            };
+        };
+
+        /**
+         * Generate unique ID
+         */
+        const generateId = () => {
+            return `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+        };
+
+        /**
+         * Format date to local string
+         */
+        const formatDate = (date) => {
+            return new Intl.DateTimeFormat('en-US', {
+                year: 'numeric',
+                month: 'short',
+                day: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+            }).format(new Date(date));
+        };
+
+        /**
+         * Truncate text with ellipsis
+         */
+        const truncate = (str, length = 100) => {
+            if (!str || str.length <= length) return str;
+            return str.substr(0, length) + '...';
+        };
+
+        /**
+         * Check if text contains family relationships
+         */
+        const containsFamilyRelations = (text) => {
+            const lowerText = text.toLowerCase();
+            return CONFIG.FAMILY_KEYWORDS.some(keyword => lowerText.includes(keyword));
+        };
+
+        /**
+         * Extract JSON from AI response (handling various formats)
+         */
+        const extractJSON = (text) => {
+            try {
+                // Try direct parsing first
+                return JSON.parse(text);
+            } catch (e) {
+                // Look for JSON in code blocks
+                const codeBlockMatch = text.match(/```(?:json)?\s*([\s\S]*?)```/);
+                if (codeBlockMatch) {
+                    try {
+                        return JSON.parse(codeBlockMatch[1]);
+                    } catch (e2) {
+                        // Continue to next attempt
+                    }
+                }
+                
+                // Look for JSON between curly braces
+                const jsonMatch = text.match(/\{[\s\S]*\}|\[[\s\S]*\]/);
+                if (jsonMatch) {
+                    try {
+                        return JSON.parse(jsonMatch[0]);
+                    } catch (e3) {
+                        console.error('Failed to parse JSON:', e3);
+                        return null;
+                    }
+                }
+            }
+            return null;
+        };
+
+        /**
+         * Clean and preprocess lesson text
+         */
+        const preprocessText = (text) => {
+            return text
+                .replace(/\s+/g, ' ')
+                .replace(/([.!?])\s+/g, "$1\n")
+                .trim();
+        };
+
+        /**
+         * Calculate reading time
+         */
+        const calculateReadingTime = (text) => {
+            const wordsPerMinute = 200;
+            const words = text.trim().split(/\s+/).length;
+            return Math.ceil(words / wordsPerMinute);
+        };
+
+        /**
+         * Get initials from name
+         */
+        const getInitials = (name) => {
+            if (!name) return '?';
+            return name
+                .split(' ')
+                .map(n => n[0])
+                .join('')
+                .toUpperCase()
+                .substr(0, 2);
+        };
+
+        /**
+         * Generate color from string (for avatars)
+         */
+        const stringToColor = (str) => {
+            let hash = 0;
+            for (let i = 0; i < str.length; i++) {
+                hash = str.charCodeAt(i) + ((hash << 5) - hash);
+            }
+            const hue = Math.abs(hash % 360);
+            return `hsl(${hue}, 70%, 50%)`;
+        };
+
+        // ==========================================
+        // STATE MANAGEMENT (REDUCERS & CONTEXT)
+        // ==========================================
+
+        // Action Types
+        const ACTIONS = {
+            SET_LESSONS: 'SET_LESSONS',
+            SELECT_LESSON: 'SELECT_LESSON',
+            SET_LOADING: 'SET_LOADING',
+            SET_ERROR: 'SET_ERROR',
+            ADD_BOOKMARK: 'ADD_BOOKMARK',
+            REMOVE_BOOKMARK: 'REMOVE_BOOKMARK',
+            ADD_HISTORY: 'ADD_HISTORY',
+            CLEAR_HISTORY: 'CLEAR_HISTORY',
+            SET_THEME: 'SET_THEME',
+            SET_FONT_SIZE: 'SET_FONT_SIZE'
+        };
+
+        // Initial State
+        const initialState = {
+            lessons: [],
+            selectedLesson: null,
+            bookmarks: [],
+            history: [],
+            loading: false,
+            error: null,
+            theme: 'light',
+            fontSize: 18,
+            sidebarOpen: true
+        };
+
+        // Reducer Function
+        const appReducer = (state, action) => {
+            switch (action.type) {
+                case ACTIONS.SET_LESSONS:
+                    return { ...state, lessons: action.payload, selectedLesson: null };
+                case ACTIONS.SELECT_LESSON:
+                    return { ...state, selectedLesson: action.payload };
+                case ACTIONS.SET_LOADING:
+                    return { ...state, loading: action.payload };
+                case ACTIONS.SET_ERROR:
+                    return { ...state, error: action.payload };
+                case ACTIONS.ADD_BOOKMARK:
+                    const newBookmarks = [action.payload, ...state.bookmarks].slice(0, CONFIG.UI.MAX_BOOKMARKS);
+                    localStorage.setItem(CONFIG.STORAGE_KEYS.BOOKMARKS, JSON.stringify(newBookmarks));
+                    return { ...state, bookmarks: newBookmarks };
+                case ACTIONS.REMOVE_BOOKMARK:
+                    const filteredBookmarks = state.bookmarks.filter(b => b.id !== action.payload);
+                    localStorage.setItem(CONFIG.STORAGE_KEYS.BOOKMARKS, JSON.stringify(filteredBookmarks));
+                    return { ...state, bookmarks: filteredBookmarks };
+                case ACTIONS.ADD_HISTORY:
+                    const newHistory = [action.payload, ...state.history].slice(0, CONFIG.UI.MAX_HISTORY_ITEMS);
+                    localStorage.setItem(CONFIG.STORAGE_KEYS.HISTORY, JSON.stringify(newHistory));
+                    return { ...state, history: newHistory };
+                case ACTIONS.CLEAR_HISTORY:
+                    localStorage.removeItem(CONFIG.STORAGE_KEYS.HISTORY);
+                    return { ...state, history: [] };
+                case ACTIONS.SET_THEME:
+                    return { ...state, theme: action.payload };
+                case ACTIONS.SET_FONT_SIZE:
+                    return { ...state, fontSize: action.payload };
+                default:
+                    return state;
+            }
+        };
+
+        // Context Creation
+        const AppContext = createContext();
+        const SettingsContext = createContext();
+
+        // ==========================================
+        // CUSTOM HOOKS
+        // ==========================================
+
+        /**
+         * Hook for managing local storage with state sync
+         */
+        const useLocalStorage = (key, initialValue) => {
+            const [storedValue, setStoredValue] = useState(() => {
+                try {
+                    const item = window.localStorage.getItem(key);
+                    return item ? JSON.parse(item) : initialValue;
+                } catch (error) {
+                    console.error(`Error reading localStorage key "${key}":`, error);
+                    return initialValue;
+                }
+            });
+
+            const setValue = (value) => {
+                try {
+                    const valueToStore = value instanceof Function ? value(storedValue) : value;
+                    setStoredValue(valueToStore);
+                    window.localStorage.setItem(key, JSON.stringify(valueToStore));
+                } catch (error) {
+                    console.error(`Error setting localStorage key "${key}":`, error);
+                }
+            };
+
+            return [storedValue, setValue];
+        };
+
+        /**
+         * Hook for intersection observer (lazy loading)
+         */
+        const useIntersectionObserver = (options = {}) => {
+            const [isIntersecting, setIsIntersecting] = useState(false);
+            const targetRef = useRef(null);
+
+            useEffect(() => {
+                const observer = new IntersectionObserver(([entry]) => {
+                    setIsIntersecting(entry.isIntersecting);
+                }, options);
+
+                const currentTarget = targetRef.current;
+                if (currentTarget) {
+                    observer.observe(currentTarget);
+                }
+
+                return () => {
+                    if (currentTarget) {
+                        observer.unobserve(currentTarget);
+                    }
+                };
+            }, [options]);
+
+            return [targetRef, isIntersecting];
+        };
+
+        /**
+         * Hook for media queries
+         */
+        const useMediaQuery = (query) => {
+            const [matches, setMatches] = useState(false);
+
+            useEffect(() => {
+                const media = window.matchMedia(query);
+                if (media.matches !== matches) {
+                    setMatches(media.matches);
+                }
+                const listener = () => setMatches(media.matches);
+                media.addEventListener('change', listener);
+                return () => media.removeEventListener('change', listener);
+            }, [matches, query]);
+
+            return matches;
+        };
+
+        /**
+         * Hook for keyboard shortcuts
+         */
+        const useKeyboardShortcut = (shortcut, callback) => {
+            useEffect(() => {
+                const handleKeyDown = (event) => {
+                    const keys = shortcut.toLowerCase().split('+');
+                    const keyPressed = event.key.toLowerCase();
+                    
+                    const ctrlRequired = keys.includes('ctrl');
+                    const shiftRequired = keys.includes('shift');
+                    const altRequired = keys.includes('alt');
+                    
+                    const mainKey = keys.find(k => !['ctrl', 'shift', 'alt'].includes(k));
+                    
+                    if (
+                        event.key.toLowerCase() === mainKey &&
+                        event.ctrlKey === ctrlRequired &&
+                        event.shiftKey === shiftRequired &&
+                        event.altKey === altRequired
+                    ) {
+                        event.preventDefault();
+                        callback();
+                    }
+                };
+
+                window.addEventListener('keydown', handleKeyDown);
+                return () => window.removeEventListener('keydown', handleKeyDown);
+            }, [shortcut, callback]);
+        };
+
+        // ==========================================
+        // AI SERVICE LAYER
+        // ==========================================
+
+        class AIService {
+            constructor(provider, apiKey) {
+                this.provider = provider;
+                this.apiKey = apiKey;
+                this.retryCount = 3;
+                this.retryDelay = 1000;
+            }
+
+            async makeRequest(prompt, context, systemPrompt = '') {
+                let lastError;
+                
+                for (let attempt = 0; attempt < this.retryCount; attempt++) {
+                    try {
+                        if (attempt > 0) {
+                            await new Promise(resolve => setTimeout(resolve, this.retryDelay * attempt));
+                        }
+                        
+                        const result = await this._executeRequest(prompt, context, systemPrompt);
+                        return result;
+                    } catch (error) {
+                        lastError = error;
+                        console.warn(`AI Request attempt ${attempt + 1} failed:`, error);
+                        
+                        // Don't retry on auth errors
+                        if (error.status === 401 || error.status === 403) {
+                            throw error;
+                        }
+                    }
+                }
+                
+                throw lastError;
+            }
+
+            async _executeRequest(prompt, context, systemPrompt) {
+                const fullPrompt = `${prompt}\n\nContext:\n${context}`;
+                const config = CONFIG.AI_MODELS[this.provider];
+                
+                if (!config) throw new Error(`Unknown provider: ${this.provider}`);
+                if (!this.apiKey) throw new Error('API key not provided');
+
+                let response;
+                
+                switch (this.provider) {
+                    case 'openai':
+                        response = await fetch(config.endpoint, {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'Authorization': `Bearer ${this.apiKey}`
+                            },
+                            body: JSON.stringify({
+                                model: config.model,
+                                messages: [
+                                    { role: 'system', content: systemPrompt || 'You are an educational assistant.' },
+                                    { role: 'user', content: fullPrompt }
+                                ],
+                                temperature: 0.7,
+                                max_tokens: 2000
+                            })
+                        });
+                        break;
+                        
+                    case 'gemini':
+                        response = await fetch(`${config.endpoint}?key=${this.apiKey}`, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({
+                                contents: [{ parts: [{ text: fullPrompt }] }],
+                                generationConfig: { temperature: 0.7 }
+                            })
+                        });
+                        break;
+                        
+                    case 'claude':
+                        response = await fetch(config.endpoint, {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'x-api-key': this.apiKey,
+                                'anthropic-version': '2023-06-01'
+                            },
+                            body: JSON.stringify({
+                                model: config.model,
+                                max_tokens: 2000,
+                                system: systemPrompt,
+                                messages: [{ role: 'user', content: fullPrompt }]
+                            })
+                        });
+                        break;
+                        
+                    default:
+                        throw new Error('Invalid provider configuration');
+                }
+
+                if (!response.ok) {
+                    const error = new Error(`API Error: ${response.status}`);
+                    error.status = response.status;
+                    throw error;
+                }
+
+                const data = await response.json();
+                return this._extractResponse(data);
+            }
+
+            _extractResponse(data) {
+                switch (this.provider) {
+                    case 'openai':
+                        return data.choices[0].message.content;
+                    case 'gemini':
+                        return data.candidates[0].content.parts[0].text;
+                    case 'claude':
+                        return data.content[0].text;
+                    default:
+                        return data;
+                }
+            }
+
+            // Specialized Methods
+            async generateEssence(lessonText) {
+                const prompt = `Analyze this lesson and provide:
+1. A compelling one-line theme title (max 60 chars)
+2. 4 key takeaways as bullet points (simple language for students)
+3. A brief 2-sentence summary
+
+Format as JSON:
+{
+  "title": "...",
+  "takeaways": ["...", "...", "...", "..."],
+  "summary": "..."
+}`;
+
+                const response = await this.makeRequest(prompt, lessonText, 
+                    'You are an expert English teacher creating study guides for ESL students.');
+                return extractJSON(response) || this._parseEssenceFallback(response);
+            }
+
+            _parseEssenceFallback(text) {
+                const lines = text.split('\n').filter(l => l.trim());
+                return {
+                    title: lines.find(l => l.toLowerCase().includes('title'))?.split(':')[1]?.trim() || 'Lesson Overview',
+                    takeaways: lines.filter(l => l.trim().startsWith('-') || l.trim().startsWith('•')).map(l => l.replace(/^[-•]\s*/, '')),
+                    summary: lines.slice(-2).join(' ')
+                };
+            }
+
+            async generateFamilyTree(lessonText) {
+                const prompt = `Extract all characters and family relationships from this text.
+Return strict JSON:
+{
+  "characters": [
+    { "name": "string", "role": "father|mother|son|daughter|grandfather|grandmother|uncle|aunt|brother|sister", "relations": [{"to": "name", "type": "parentOf|childOf|siblingOf|spouseOf"}] }
+  ],
+  "generations": number
+}`;
+
+                const response = await this.makeRequest(prompt, lessonText,
+                    'You are a precise data extraction specialist. Return only valid JSON.');
+                return extractJSON(response);
+            }
+
+            async generateQA(lessonText, count = 6, existingQuestions = []) {
+                const excludeText = existingQuestions.length > 0 
+                    ? `\nAvoid these existing questions: ${existingQuestions.join(', ')}` 
+                    : '';
+                    
+                const prompt = `Generate ${count} important reading comprehension questions with detailed answers.
+Each answer must have English and Bengali translation.
+
+Return strict JSON array:
+[
+  {
+    "id": "unique-id",
+    "question": "Question text?",
+    "english": "Detailed answer in English",
+    "bengali": "বাংলা অনুবাদ",
+    "difficulty": "easy|medium|hard",
+    "category": "vocabulary|comprehension|inference|analysis"
+  }
+]${excludeText}`;
+
+                const response = await this.makeRequest(prompt, lessonText,
+                    'You are creating examination questions for English language learners in Bangladesh.');
+                const parsed = extractJSON(response);
+                return Array.isArray(parsed) ? parsed : [];
+            }
+
+            async answerQuestion(question, lessonText) {
+                const prompt = `Question: ${question}
+
+Provide a comprehensive answer based strictly on the lesson text.
+Format:
+English: [Detailed answer]
+Bengali: [বাংলা অনুবাদ]
+
+If the answer isn't in the text, say "This information is not covered in the lesson."`;
+
+                const response = await this.makeRequest(prompt, lessonText,
+                    'You are a helpful tutor for Bangladeshi students learning English.');
+                
+                const englishMatch = response.match(/English:\s*([\s\S]*?)(?=\n*Bengali:|$)/i);
+                const bengaliMatch = response.match(/Bengali:\s*([\s\S]*)/i);
+                
+                return {
+                    english: englishMatch ? englishMatch[1].trim() : response,
+                    bengali: bengaliMatch ? bengaliMatch[1].trim() : 'অনুবাদ উপলব্ধ নয়'
+                };
+            }
+
+            async translateText(text, targetLang = 'bn') {
+                const prompt = `Translate this text to ${targetLang === 'bn' ? 'Bengali (Bangla)' : 'English'}.
+Maintain the tone and meaning accurately.
+Text: "${text}"
+
+Return only the translation, no explanations.`;
+
+                return await this.makeRequest(prompt, '', 'You are a professional translator.');
+            }
+        }
+
+        // ==========================================
+        // UI COMPONENTS (ATOMS)
+        // ==========================================
+
+        // Icon Component with error boundary
+        const Icon = ({ name, size = 20, className = "", strokeWidth = 2 }) => {
+            const [error, setError] = useState(false);
+            
+            if (error) {
+                return <span className={`inline-block ${className}`} style={{ width: size, height: size }}>•</span>;
+            }
+            
+            try {
+                const IconComponent = window.lucide[name];
+                if (!IconComponent) {
+                    console.warn(`Icon ${name} not found`);
+                    return null;
+                }
+                return <IconComponent size={size} className={className} strokeWidth={strokeWidth} />;
+            } catch (e) {
+                setError(true);
+                return null;
+            }
+        };
+
+        // Button Component with variants
+        const Button = ({ 
+            children, 
+            variant = 'primary', 
+            size = 'md', 
+            className = '', 
+            loading = false,
+            disabled = false,
+            icon = null,
+            iconPosition = 'left',
+            onClick,
+            ...props 
+        }) => {
+            const baseStyles = 'inline-flex items-center justify-center font-medium rounded-lg transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed';
+            
+            const variants = {
+                primary: 'bg-indigo-600 text-white hover:bg-indigo-700 focus:ring-indigo-500 shadow-sm hover:shadow-md',
+                secondary: 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50 focus:ring-gray-500 shadow-sm',
+                danger: 'bg-red-600 text-white hover:bg-red-700 focus:ring-red-500',
+                ghost: 'bg-transparent text-gray-600 hover:bg-gray-100 focus:ring-gray-500',
+                accent: 'bg-amber-500 text-white hover:bg-amber-600 focus:ring-amber-500 shadow-sm'
+            };
+            
+            const sizes = {
+                sm: 'px-3 py-1.5 text-sm',
+                md: 'px-4 py-2 text-base',
+                lg: 'px-6 py-3 text-lg',
+                xl: 'px-8 py-4 text-xl'
+            };
+
+            const classes = `${baseStyles} ${variants[variant]} ${sizes[size]} ${className}`;
+            
+            return (
+                <button 
+                    className={classes} 
+                    disabled={disabled || loading}
+                    onClick={onClick}
+                    {...props}
+                >
+                    {loading && <Icon name="Loader2" className="animate-spin mr-2" size={size === 'lg' ? 24 : 20} />}
+                    {!loading && icon && iconPosition === 'left' && <span className="mr-2">{icon}</span>}
+                    {children}
+                    {!loading && icon && iconPosition === 'right' && <span className="ml-2">{icon}</span>}
+                </button>
+            );
+        };
+
+        // Card Component
+        const Card = ({ children, className = '', padding = 'normal', shadow = 'md', hover = false }) => {
+            const paddings = {
+                none: '',
+                small: 'p-4',
+                normal: 'p-6',
+                large: 'p-8'
+            };
+            
+            const shadows = {
+                none: '',
+                sm: 'shadow-sm',
+                md: 'shadow-md',
+                lg: 'shadow-lg',
+                xl: 'shadow-xl'
+            };
+            
+            const classes = `
+                bg-white dark:bg-slate-800 
+                rounded-xl border border-gray-200 dark:border-slate-700 
+                ${paddings[padding]} 
+                ${shadows[shadow]} 
+                ${hover ? 'hover-lift cursor-pointer' : ''}
+                ${className}
+            `;
+            
+            return <div className={classes}>{children}</div>;
+        };
+
+        // Badge Component
+        const Badge = ({ children, color = 'gray', size = 'md', className = '' }) => {
+            const colors = {
+                gray: 'bg-gray-100 text-gray-800 dark:bg-slate-700 dark:text-gray-300',
+                red: 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200',
+                yellow: 'bg-amber-100 text-amber-800 dark:bg-amber-900 dark:text-amber-200',
+                green: 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200',
+                blue: 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200',
+                indigo: 'bg-indigo-100 text-indigo-800 dark:bg-indigo-900 dark:text-indigo-200',
+                purple: 'bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200'
+            };
+            
+            const sizes = {
+                sm: 'px-2 py-0.5 text-xs',
+                md: 'px-2.5 py-0.5 text-sm',
+                lg: 'px-3 py-1 text-base'
+            };
+            
+            return (
+                <span className={`inline-flex items-center font-medium rounded-full ${colors[color]} ${sizes[size]} ${className}`}>
+                    {children}
+                </span>
+            );
+        };
+
+        // Tooltip Component
+        const Tooltip = ({ children, text, position = 'top' }) => {
+            const positions = {
+                top: 'bottom-full left-1/2 transform -translate-x-1/2 mb-2',
+                bottom: 'top-full left-1/2 transform -translate-x-1/2 mt-2',
+                left: 'right-full top-1/2 transform -translate-y-1/2 mr-2',
+                right: 'left-full top-1/2 transform -translate-y-1/2 ml-2'
+            };
+            
+            return (
+                <div className="relative group inline-block">
+                    {children}
+                    <div className={`absolute ${positions[position]} px-3 py-2 bg-gray-900 text-white text-sm rounded-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 whitespace-nowrap z-50 pointer-events-none`}>
+                        {text}
+                        <div className={`absolute w-2 h-2 bg-gray-900 transform rotate-45 ${position === 'top' ? 'top-full left-1/2 -translate-x-1/2 -mt-1' : position === 'bottom' ? 'bottom-full left-1/2 -translate-x-1/2 -mb-1' : position === 'left' ? 'left-full top-1/2 -translate-y-1/2 -ml-1' : 'right-full top-1/2 -translate-y-1/2 -mr-1'}`}></div>
+                    </div>
+                </div>
+            );
+        };
+
+        // Toast Notification System
+        const ToastContext = createContext();
+
+        const ToastProvider = ({ children }) => {
+            const [toasts, setToasts] = useState([]);
+            
+            const addToast = useCallback((message, type = 'info', duration = CONFIG.UI.TOAST_DURATION) => {
+                const id = generateId();
+                const newToast = { id, message, type, duration };
+                setToasts(prev => [...prev, newToast]);
+                
+                setTimeout(() => {
+                    setToasts(prev => prev.filter(t => t.id !== id));
+                }, duration);
+            }, []);
+            
+            const removeToast = useCallback((id) => {
+                setToasts(prev => prev.filter(t => t.id !== id));
+            }, []);
+            
+            return (
+                <ToastContext.Provider value={{ addToast, removeToast }}>
+                    {children}
+                    <div className="toast-container">
+                        {toasts.map(toast => (
+                            <Toast key={toast.id} {...toast} onClose={() => removeToast(toast.id)} />
+                        ))}
+                    </div>
+                </ToastContext.Provider>
+            );
+        };
+
+        const Toast = ({ message, type, onClose }) => {
+            const icons = {
+                success: 'CheckCircle',
+                error: 'XCircle',
+                warning: 'AlertTriangle',
+                info: 'Info'
+            };
+            
+            const colors = {
+                success: 'bg-green-500',
+                error: 'bg-red-500',
+                warning: 'bg-amber-500',
+                info: 'bg-blue-500'
+            };
+            
+            useEffect(() => {
+                const timer = setTimeout(onClose, CONFIG.UI.TOAST_DURATION);
+                return () => clearTimeout(timer);
+            }, [onClose]);
+            
+            return (
+                <div className={`${colors[type]} text-white px-6 py-4 rounded-xl shadow-2xl flex items-center gap-3 min-w-[300px] animate-slide-up`}>
+                    <Icon name={icons[type]} size={20} />
+                    <span className="font-medium flex-1">{message}</span>
+                    <button onClick={onClose} className="hover:bg-white/20 rounded-full p-1 transition">
+                        <Icon name="X" size={16} />
+                    </button>
+                </div>
+            );
+        };
+
+        // ==========================================
+        // COMPLEX COMPONENTS (MOLECULES & ORGANISMS)
+        // ==========================================
+
+        // Settings Panel with Advanced Options
+        const SettingsPanel = ({ isOpen, onClose }) => {
+            const { settings, setSettings } = useContext(SettingsContext);
+            const { addToast } = useContext(ToastContext);
+            const [localSettings, setLocalSettings] = useState(settings);
+            const [activeTab, setActiveTab] = useState('ai');
+            const [testingConnection, setTestingConnection] = useState(false);
+            
+            useEffect(() => {
+                setLocalSettings(settings);
+            }, [settings, isOpen]);
+            
+            const handleSave = () => {
+                setSettings(localSettings);
+                addToast('Settings saved successfully!', 'success');
+                onClose();
+            };
+            
+            const testConnection = async () => {
+                setTestingConnection(true);
+                try {
+                    const ai = new AIService(localSettings.provider, localSettings.apiKey);
+                    await ai.makeRequest('Say "Connection successful" only', '', '');
+                    addToast('Connection successful!', 'success');
+                } catch (error) {
+                    addToast(`Connection failed: ${error.message}`, 'error');
+                } finally {
+                    setTestingConnection(false);
+                }
+            };
+            
+            const tabs = [
+                { id: 'ai', label: 'AI Configuration', icon: 'Brain' },
+                { id: 'display', label: 'Display', icon: 'Monitor' },
+                { id: 'advanced', label: 'Advanced', icon: 'Settings2' }
+            ];
+            
+            if (!isOpen) return null;
+            
+            return (
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 modal-backdrop bg-black/50">
+                    <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-hidden animate-slide-up flex flex-col">
+                        {/* Header */}
+                        <div className="px-6 py-4 border-b border-gray-200 dark:border-slate-700 flex items-center justify-between bg-gray-50 dark:bg-slate-800">
+                            <div className="flex items-center gap-3">
+                                <div className="p-2 bg-indigo-100 dark:bg-indigo-900 rounded-lg">
+                                    <Icon name="Settings" className="text-indigo-600 dark:text-indigo-400" size={24} />
+                                </div>
+                                <div>
+                                    <h2 className="text-xl font-bold text-gray-900 dark:text-white">Settings</h2>
+                                    <p className="text-sm text-gray-500 dark:text-gray-400">Configure your learning environment</p>
+                                </div>
+                            </div>
+                            <button onClick={onClose} className="p-2 hover:bg-gray-200 dark:hover:bg-slate-700 rounded-full transition">
+                                <Icon name="X" size={20} className="text-gray-500" />
+                            </button>
+                        </div>
+                        
+                        {/* Tabs */}
+                        <div className="flex border-b border-gray-200 dark:border-slate-700 bg-white dark:bg-slate-900">
+                            {tabs.map(tab => (
+                                <button
+                                    key={tab.id}
+                                    onClick={() => setActiveTab(tab.id)}
+                                    className={`flex-1 px-4 py-3 flex items-center justify-center gap-2 font-medium transition-colors ${
+                                        activeTab === tab.id 
+                                            ? 'text-indigo-600 border-b-2 border-indigo-600 bg-indigo-50/50 dark:bg-indigo-900/20 dark:text-indigo-400' 
+                                            : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50 dark:text-gray-400 dark:hover:bg-slate-800'
+                                    }`}
+                                >
+                                    <Icon name={tab.icon} size={18} />
+                                    {tab.label}
+                                </button>
+                            ))}
+                        </div>
+                        
+                        {/* Content */}
+                        <div className="flex-1 overflow-y-auto p-6 bg-white dark:bg-slate-900">
+                            {activeTab === 'ai' && (
+                                <div className="space-y-6">
+                                    <div>
+                                        <label className="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-3">
+                                            AI Provider
+                                        </label>
+                                        <div className="grid gap-3">
+                                            {Object.entries(CONFIG.AI_MODELS).map(([key, value]) => (
+                                                <label key={key} className={`relative flex items-center p-4 border-2 rounded-xl cursor-pointer transition-all ${
+                                                    localSettings.provider === key 
+                                                        ? 'border-indigo-500 bg-indigo-50 dark:bg-indigo-900/20' 
+                                                        : 'border-gray-200 dark:border-slate-700 hover:border-gray-300 dark:hover:border-slate-600'
+                                                }`}>
+                                                    <input
+                                                        type="radio"
+                                                        name="provider"
+                                                        value={key}
+                                                        checked={localSettings.provider === key}
+                                                        onChange={(e) => setLocalSettings({...localSettings, provider: e.target.value})}
+                                                        className="sr-only"
+                                                    />
+                                                    <div className="flex-1">
+                                                        <div className="font-semibold text-gray-900 dark:text-white">{value.name}</div>
+                                                        <div className="text-sm text-gray-500 dark:text-gray-400 font-mono">{value.endpoint}</div>
+                                                    </div>
+                                                    {localSettings.provider === key && (
+                                                        <Icon name="CheckCircle2" className="text-indigo-600 dark:text-indigo-400" size={24} />
+                                                    )}
+                                                </label>
+                                            ))}
+                                        </div>
+                                    </div>
+                                    
+                                    <div>
+                                        <label className="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-2">
+                                            API Key
+                                        </label>
+                                        <div className="relative">
+                                            <input
+                                                type="password"
+                                                value={localSettings.apiKey}
+                                                onChange={(e) => setLocalSettings({...localSettings, apiKey: e.target.value})}
+                                                placeholder="sk-... or AIza..."
+                                                className="w-full pl-10 pr-4 py-3 border border-gray-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent dark:bg-slate-800 dark:text-white font-mono text-sm"
+                                            />
+                                            <Icon name="Key" className="absolute left-3 top-3.5 text-gray-400" size={18} />
+                                        </div>
+                                        <p className="mt-2 text-xs text-gray-500 dark:text-gray-400 flex items-center gap-1">
+                                            <Icon name="Shield" size={12} />
+                                            Stored locally in your browser. Never shared.
+                                        </p>
+                                    </div>
+                                    
+                                    <div className="flex gap-3">
+                                        <Button 
+                                            variant="secondary" 
+                                            onClick={testConnection}
+                                            loading={testingConnection}
+                                            className="flex-1"
+                                        >
+                                            Test Connection
+                                        </Button>
+                                    </div>
+                                </div>
+                            )}
+                            
+                            {activeTab === 'display' && (
+                                <div className="space-y-6">
+                                    <div>
+                                        <label className="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-3">
+                                            Theme
+                                        </label>
+                                        <div className="flex gap-4">
+                                            {['light', 'dark', 'system'].map((theme) => (
+                                                <button
+                                                    key={theme}
+                                                    onClick={() => setLocalSettings({...localSettings, theme})}
+                                                    className={`flex-1 py-3 px-4 rounded-lg border-2 capitalize transition-all ${
+                                                        localSettings.theme === theme
+                                                            ? 'border-indigo-500 bg-indigo-50 dark:bg-indigo-900/20 text-indigo-700 dark:text-indigo-300'
+                                                            : 'border-gray-200 dark:border-slate-700 hover:border-gray-300'
+                                                    }`}
+                                                >
+                                                    {theme}
+                                                </button>
+                                            ))}
+                                        </div>
+                                    </div>
+                                    
+                                    <div>
+                                        <label className="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-3">
+                                            Font Size: {localSettings.fontSize}px
+                                        </label>
+                                        <input
+                                            type="range"
+                                            min="14"
+                                            max="24"
+                                            step="1"
+                                            value={localSettings.fontSize}
+                                            onChange={(e) => setLocalSettings({...localSettings, fontSize: parseInt(e.target.value)})}
+                                            className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-indigo-600"
+                                        />
+                                        <div className="flex justify-between text-xs text-gray-500 mt-1">
+                                            <span>Small</span>
+                                            <span>Large</span>
+                                        </div>
+                                    </div>
+                                    
+                                    <div>
+                                        <label className="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-3">
+                                            Language Preferences
+                                        </label>
+                                        <div className="space-y-3">
+                                            <label className="flex items-center gap-3 p-3 border border-gray-200 dark:border-slate-700 rounded-lg">
+                                                <input type="checkbox" className="custom-checkbox" defaultChecked />
+                                                <span className="text-gray-700 dark:text-gray-300">Show Bengali translations by default</span>
+                                            </label>
+                                            <label className="flex items-center gap-3 p-3 border border-gray-200 dark:border-slate-700 rounded-lg">
+                                                <input type="checkbox" className="custom-checkbox" />
+                                                <span className="text-gray-700 dark:text-gray-300">Enable Romanization for Bengali text</span>
+                                            </label>
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
+                            
+                            {activeTab === 'advanced' && (
+                                <div className="space-y-6">
+                                    <div className="p-4 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg">
+                                        <div className="flex items-start gap-3">
+                                            <Icon name="AlertTriangle" className="text-amber-600 dark:text-amber-400 flex-shrink-0 mt-0.5" />
+                                            <div>
+                                                <h4 className="font-semibold text-amber-900 dark:text-amber-200">Advanced Settings</h4>
+                                                <p className="text-sm text-amber-700 dark:text-amber-300 mt-1">
+                                                    These settings are for advanced users. Changing them may affect performance.
+                                                </p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div>
+                                        <label className="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-2">
+                                            Request Timeout (ms)
+                                        </label>
+                                        <input
+                                            type="number"
+                                            defaultValue={30000}
+                                            className="w-full px-4 py-2 border border-gray-300 dark:border-slate-600 rounded-lg dark:bg-slate-800 dark:text-white"
+                                        />
+                                    </div>
+                                    
+                                    <div>
+                                        <label className="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-2">
+                                            Max Retries
+                                        </label>
+                                        <input
+                                            type="number"
+                                            defaultValue={3}
+                                            min="1"
+                                            max="5"
+                                            className="w-full px-4 py-2 border border-gray-300 dark:border-slate-600 rounded-lg dark:bg-slate-800 dark:text-white"
+                                        />
+                                    </div>
+                                    
+                                    <div className="pt-4 border-t border-gray-200 dark:border-slate-700">
+                                        <Button variant="danger" className="w-full" onClick={() => {
+                                            localStorage.clear();
+                                            addToast('All data cleared!', 'warning');
+                                        }}>
+                                            <Icon name="Trash2" size={18} />
+                                            Clear All Data
+                                        </Button>
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+                        
+                        {/* Footer */}
+                        <div className="px-6 py-4 border-t border-gray-200 dark:border-slate-700 bg-gray-50 dark:bg-slate-800 flex justify-end gap-3">
+                            <Button variant="secondary" onClick={onClose}>
+                                Cancel
+                            </Button>
+                            <Button onClick={handleSave} icon={<Icon name="Save" size={18} />}>
+                                Save Changes
+                            </Button>
+                        </div>
+                    </div>
+                </div>
+            );
+        };
+
+        // Enhanced PDF Uploader with drag-drop and validation
+        const PDFUploader = ({ onUpload }) => {
+            const [isDragging, setIsDragging] = useState(false);
+            const [loading, setLoading] = useState(false);
+            const [progress, setProgress] = useState(0);
+            const [fileInfo, setFileInfo] = useState(null);
+            const fileInputRef = useRef(null);
+            const { addToast } = useContext(ToastContext);
+
+            const validateFile = (file) => {
+                if (!file) return { valid: false, error: 'No file selected' };
+                if (file.type !== 'application/pdf') return { valid: false, error: 'Please upload a PDF file' };
+                if (file.size > 50 * 1024 * 1024) return { valid: false, error: 'File size must be less than 50MB' };
+                return { valid: true };
+            };
+
+            const extractTextFromPDF = async (file) => {
+                try {
+                    const arrayBuffer = await file.arrayBuffer();
+                    const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+                    const totalPages = pdf.numPages;
+                    let fullText = '';
+                    
+                    for (let i = 1; i <= totalPages; i++) {
+                        const page = await pdf.getPage(i);
+                        const textContent = await page.getTextContent();
+                        const pageText = textContent.items.map(item => item.str).join(' ');
+                        fullText += pageText + '\n\n';
+                        
+                        // Update progress
+                        setProgress(Math.round((i / totalPages) * 50)); // First 50% for extraction
+                    }
+                    
+                    return { text: fullText, totalPages };
+                } catch (error) {
+                    throw new Error(`Failed to parse PDF: ${error.message}`);
+                }
+            };
+
+            const parseLessons = (text) => {
+                // Advanced parsing with multiple pattern support
+                const patterns = [
+                    /(?:Unit|Lesson|Chapter|Module|Section)\s*\d+[:\s][^\n]+/gi,
+                    /\d+\.\s+[A-Z][^\n]+/g,  // "1. Introduction to..."
+                    /(?:Introduction|Conclusion|Summary|Exercise)[:\s][^\n]*/gi
+                ];
+                
+                let matches = [];
+                
+                // Try each pattern
+                for (const pattern of patterns) {
+                    const found = text.match(pattern);
+                    if (found && found.length > matches.length) {
+                        matches = found;
+                    }
+                }
+                
+                // If no matches, use paragraph-based chunking
+                if (matches.length === 0) {
+                    const paragraphs = text.split(/\n\s*\n/).filter(t => t.trim().length > 150);
+                    return paragraphs.map((content, idx) => ({
+                        id: generateId(),
+                        title: `Lesson ${idx + 1}: ${content.split(' ').slice(0, 5).join(' ')}...`,
+                        content: content.trim(),
+                        wordCount: content.split(/\s+/).length,
+                        estimatedTime: calculateReadingTime(content)
+                    }));
+                }
+                
+                // Parse based on found matches
+                const lessons = [];
+                let lastIndex = 0;
+                
+                matches.forEach((match, idx) => {
+                    const startIdx = text.indexOf(match, lastIndex);
+                    const endIdx = idx < matches.length - 1 ? text.indexOf(matches[idx + 1], startIdx + 1) : text.length;
+                    const content = text.slice(startIdx, endIdx).trim();
+                    
+                    if (content.length > 100) {
+                        lessons.push({
+                            id: generateId(),
+                            title: match.trim(),
+                            content: content,
+                            wordCount: content.split(/\s+/).length,
+                            estimatedTime: calculateReadingTime(content)
+                        });
+                    }
+                    
+                    lastIndex = startIdx + 1;
+                });
+                
+                return lessons;
+            };
+
+            const handleFile = async (file) => {
+                const validation = validateFile(file);
+                if (!validation.valid) {
+                    addToast(validation.error, 'error');
+                    return;
+                }
+                
+                setFileInfo({
+                    name: file.name,
+                    size: (file.size / 1024 / 1024).toFixed(2) + ' MB'
+                });
+                setLoading(true);
+                setProgress(0);
+                
+                try {
+                    addToast('Reading PDF... This may take a moment.', 'info');
+                    const { text, totalPages } = await extractTextFromPDF(file);
+                    setProgress(60);
+                    
+                    addToast('Analyzing structure...', 'info');
+                    const lessons = parseLessons(text);
+                    setProgress(90);
+                    
+                    if (lessons.length === 0) {
+                        throw new Error('No lessons detected in PDF');
+                    }
+                    
+                    setProgress(100);
+                    addToast(`Successfully loaded ${lessons.length} lessons!`, 'success');
+                    onUpload(lessons, { totalPages, fileName: file.name });
+                } catch (error) {
+                    console.error('PDF Processing Error:', error);
+                    addToast(error.message, 'error');
+                } finally {
+                    setTimeout(() => {
+                        setLoading(false);
+                        setProgress(0);
+                        setFileInfo(null);
+                    }, 500);
+                }
+            };
+
+            const handleDrop = useCallback((e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                setIsDragging(false);
+                
+                const files = e.dataTransfer.files;
+                if (files?.length > 0) {
+                    handleFile(files[0]);
+                }
+            }, []);
+
+            const handleDragOver = useCallback((e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                setIsDragging(true);
+            }, []);
+
+            const handleDragLeave = useCallback((e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                setIsDragging(false);
+            }, []);
+
+            return (
+                <div className="w-full max-w-3xl mx-auto">
+                    <Card className="overflow-hidden" padding="none">
+                        <div
+                            onClick={() => !loading && fileInputRef.current?.click()}
+                            onDrop={handleDrop}
+                            onDragOver={handleDragOver}
+                            onDragLeave={handleDragLeave}
+                            className={`
+                                relative drag-zone p-12 cursor-pointer transition-all duration-300
+                                ${isDragging ? 'drag-over bg-indigo-50/50 dark:bg-indigo-900/20' : 'bg-white dark:bg-slate-800'}
+                                ${loading ? 'cursor-not-allowed opacity-80' : ''}
+                            `}
+                        >
+                            <input
+                                ref={fileInputRef}
+                                type="file"
+                                accept=".pdf,application/pdf"
+                                onChange={(e) => e.target.files?.[0] && handleFile(e.target.files[0])}
+                                className="hidden"
+                            />
+                            
+                            <div className="text-center">
+                                {loading ? (
+                                    <div className="space-y-4">
+                                        <div className="relative w-24 h-24 mx-auto">
+                                            <svg className="w-full h-full transform -rotate-90" viewBox="0 0 36 36">
+                                                <path
+                                                    className="text-gray-200 dark:text-slate-700"
+                                                    d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
+                                                    fill="none"
+                                                    stroke="currentColor"
+                                                    strokeWidth="3"
+                                                />
+                                                <path
+                                                    className="text-indigo-600 transition-all duration-500"
+                                                    strokeDasharray={`${progress}, 100`}
+                                                    d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
+                                                    fill="none"
+                                                    stroke="currentColor"
+                                                    strokeWidth="3"
+                                                />
+                                            </svg>
+                                            <div className="absolute inset-0 flex items-center justify-center">
+                                                <span className="text-2xl font-bold text-indigo-600 dark:text-indigo-400">{progress}%</span>
+                                            </div>
+                                        </div>
+                                        <div>
+                                            <p className="text-lg font-semibold text-gray-800 dark:text-white">Processing PDF...</p>
+                                            {fileInfo && (
+                                                <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+                                                    {fileInfo.name} ({fileInfo.size})
+                                                </p>
+                                            )}
+                                        </div>
+                                    </div>
+                                ) : (
+                                    <>
+                                        <div className={`
+                                            mx-auto w-20 h-20 rounded-full flex items-center justify-center mb-6 transition-all duration-300
+                                            ${isDragging 
+                                                ? 'bg-indigo-100 dark:bg-indigo-900 scale-110' 
+                                                : 'bg-indigo-50 dark:bg-slate-700'
+                                            }
+                                        `}>
+                                            <Icon 
+                                                name={isDragging ? "FileCheck" : "Upload"} 
+                                                size={40} 
+                                                className={`transition-colors ${isDragging ? 'text-indigo-600 dark:text-indigo-400' : 'text-indigo-500 dark:text-indigo-400'}`} 
+                                            />
+                                        </div>
+                                        
+                                        <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
+                                            {isDragging ? 'Drop your PDF here' : 'Upload your Textbook'}
+                                        </h3>
+                                        
+                                        <p className="text-gray-500 dark:text-gray-400 mb-6 max-w-md mx-auto">
+                                            Drag and drop your PDF file here, or click to browse. 
+                                            We'll automatically detect lessons and chapters.
+                                        </p>
+                                        
+                                        <div className="flex items-center justify-center gap-4 text-sm text-gray-400 dark:text-gray-500">
+                                            <span className="flex items-center gap-1">
+                                                <Icon name="FileText" size={14} />
+                                                PDF only
+                                            </span>
+                                            <span>•</span>
+                                            <span className="flex items-center gap-1">
+                                                <Icon name="HardDrive" size={14} />
+                                                Max 50MB
+                                            </span>
+                                            <span>•</span>
+                                            <span className="flex items-center gap-1">
+                                                <Icon name="Shield" size={14} />
+                                                Secure
+                                            </span>
+                                        </div>
+                                    </>
+                                )}
+                            </div>
+                        </div>
+                        
+                        <div className="px-6 py-4 bg-gray-50 dark:bg-slate-700/50 border-t border-gray-100 dark:border-slate-700">
+                            <div className="flex items-center justify-between text-xs text-gray-500 dark:text-gray-400">
+                                <span className="flex items-center gap-1">
+                                    <Icon name="Info" size={12} />
+                                    Supported formats: Textbooks, Novels, Articles
+                                </span>
+                                <span>Version {CONFIG.VERSION}</span>
+                            </div>
+                        </div>
+                    </Card>
+                    
+                    {/* Security Notice */}
+                    <div className="mt-6 flex items-start gap-3 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-100 dark:border-blue-800">
+                        <Icon name="ShieldCheck" className="text-blue-600 dark:text-blue-400 flex-shrink-0 mt-0.5" size={20} />
+                        <div>
+                            <h4 className="font-semibold text-blue-900 dark:text-blue-200 text-sm">Privacy First</h4>
+                            <p className="text-blue-700 dark:text-blue-300 text-xs mt-1">
+                                Your PDFs are processed entirely in your browser. No data is uploaded to our servers. 
+                                Your API keys are stored locally and used only for AI requests.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            );
+        };
+
+        // Advanced Family Tree Visualization
+        const FamilyTreeBox = ({ lessonContent, settings }) => {
+            const [familyData, setFamilyData] = useState(null);
+            const [loading, setLoading] = useState(true);
+            const [error, setError] = useState(null);
+            const [expanded, setExpanded] = useState(false);
+            
+            useEffect(() => {
+                let isMounted = true;
+                
+                const detectFamily = async () => {
+                    if (!containsFamilyRelations(lessonContent)) {
+                        setLoading(false);
+                        return;
+                    }
+                    
+                    try {
+                        const ai = new AIService(settings.provider, settings.apiKey);
+                        const result = await ai.generateFamilyTree(lessonContent);
+                        
+                        if (isMounted) {
+                            if (result && result.characters && result.characters.length > 0) {
+                                setFamilyData(result);
+                            } else {
+                                setFamilyData(null);
+                            }
+                            setLoading(false);
+                        }
+                    } catch (err) {
+                        if (isMounted) {
+                            console.error('Family Tree Error:', err);
+                            setError(err.message);
+                            setLoading(false);
+                        }
+                    }
+                };
+                
+                detectFamily();
+                
+                return () => { isMounted = false; };
+            }, [lessonContent, settings]);
+            
+            if (loading) {
+                return (
+                    <Card className="mb-6 border-blue-200 dark:border-blue-800" padding="large">
+                        <div className="flex items-center gap-3 mb-4">
+                            <div className="w-10 h-10 bg-blue-100 dark:bg-blue-900 rounded-full animate-pulse"></div>
+                            <div className="flex-1">
+                                <div className="h-4 bg-blue-100 dark:bg-blue-900 rounded w-1/3 mb-2 animate-pulse"></div>
+                                <div className="h-3 bg-blue-50 dark:bg-blue-950 rounded w-1/4 animate-pulse"></div>
+                            </div>
+                        </div>
+                        <div className="flex justify-center gap-8 py-8">
+                            {[1,2,3].map(i => (
+                                <div key={i} className="w-16 h-16 rounded-full bg-blue-100 dark:bg-blue-900 animate-pulse"></div>
+                            ))}
+                        </div>
+                    </Card>
+                );
+            }
+            
+            if (error || !familyData) return null;
+            
+            const organizeByGeneration = () => {
+                const chars = familyData.characters || [];
+                const generations = [];
+                
+                // Simple grouping logic
+                const parents = chars.filter(c => ['father', 'mother', 'parent'].includes(c.role?.toLowerCase()));
+                const children = chars.filter(c => ['son', 'daughter', 'child'].includes(c.role?.toLowerCase()));
+                const grandparents = chars.filter(c => c.role?.toLowerCase().includes('grand'));
+                
+                if (grandparents.length > 0) generations.push(grandparents);
+                if (parents.length > 0) generations.push(parents);
+                if (children.length > 0) generations.push(children);
+                
+                if (generations.length === 0) generations.push(chars);
+                
+                return generations;
+            };
+            
+            const generations = organizeByGeneration();
+            const getInitials = (name) => name?.split(' ').map(n => n[0]).join('').toUpperCase().substr(0, 2) || '?';
+            const getColor = (name) => stringToColor(name || '');
+            
+            return (
+                <Card className="mb-8 border-2 border-blue-400 dark:border-blue-600 bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-slate-800 dark:to-slate-900" padding="large">
+                    <div className="flex items-center justify-between mb-6">
+                        <div className="flex items-center gap-3">
+                            <div className="p-2 bg-blue-500 rounded-lg">
+                                <Icon name="Users" className="text-white" size={24} />
+                            </div>
+                            <div>
+                                <h3 className="text-lg font-bold text-gray-900 dark:text-white">Character Relationships</h3>
+                                <p className="text-sm text-gray-500 dark:text-gray-400">
+                                    {familyData.characters?.length || 0} characters detected
+                                </p>
+                            </div>
+                        </div>
+                        <Button 
+                            variant="ghost" 
+                            size="sm"
+                            onClick={() => setExpanded(!expanded)}
+                            icon={<Icon name={expanded ? "ChevronUp" : "ChevronDown"} size={16} />}
+                        >
+                            {expanded ? 'Collapse' : 'Expand'}
+                        </Button>
+                    </div>
+                    
+                    <div className={`family-tree-container overflow-x-auto transition-all duration-500 ${expanded ? 'max-h-[800px]' : 'max-h-[400px]'}`}>
+                        <div className="min-w-[600px] flex flex-col items-center gap-8 py-4">
+                            {generations.map((gen, genIdx) => (
+                                <div key={genIdx} className="relative w-full">
+                                    {genIdx > 0 && (
+                                        <div className="absolute -top-4 left-1/2 w-px h-4 bg-blue-400 dark:bg-blue-500 transform -translate-x-1/2"></div>
+                                    )}
+                                    
+                                    <div className="flex justify-center gap-8 flex-wrap">
+                                        {gen.map((char, charIdx) => (
+                                            <div key={charIdx} className="flex flex-col items-center">
+                                                {genIdx > 0 && (
+                                                    <div className="w-px h-4 bg-blue-400 dark:bg-blue-500 mb-2"></div>
+                                                )}
+                                                <Tooltip text={`${char.name} (${char.role})`}>
+                                                    <div 
+                                                        className="family-node w-20 h-20 rounded-full flex items-center justify-center text-white font-bold text-lg shadow-lg cursor-pointer border-4 border-white dark:border-slate-700"
+                                                        style={{ backgroundColor: getColor(char.name) }}
+                                                    >
+                                                        {getInitials(char.name)}
+                                                    </div>
+                                                </Tooltip>
+                                                <div className="mt-2 text-center">
+                                                    <div className="font-bold text-gray-800 dark:text-white text-sm">{char.name}</div>
+                                                    <div className="text-xs text-blue-600 dark:text-blue-400 capitalize font-medium">{char.role}</div>
+                                                </div>
+                                                
+                                                {expanded && char.relations && (
+                                                    <div className="mt-2 space-y-1 text-xs text-gray-500 dark:text-gray-400">
+                                                        {char.relations.map((rel, rIdx) => (
+                                                            <div key={rIdx} className="bg-white/50 dark:bg-slate-800/50 px-2 py-1 rounded">
+                                                                {rel.type}: {rel.to}
+                                                            </div>
+                                                        ))}
+                                                    </div>
+                                                )}
+                                            </div>
+                                        ))}
+                                    </div>
+                                    
+                                    {genIdx < generations.length - 1 && (
+                                        <div className="absolute -bottom-4 left-1/2 w-px h-4 bg-blue-400 dark:bg-blue-500 transform -translate-x-1/2"></div>
+                                    )}
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                    
+                    <p className="text-center text-gray-500 dark:text-gray-400 italic text-sm mt-6 flex items-center justify-center gap-2">
+                        <Icon name="Info" size={14} />
+                        Characters in this story and their relationships
+                    </p>
+                </Card>
+            );
+        };
+
+        // Enhanced Lesson Essence Card
+        const LessonEssenceCard = ({ lesson, onReadComplete, settings }) => {
+            const [essence, setEssence] = useState(null);
+            const [loading, setLoading] = useState(true);
+            const [progress, setProgress] = useState(0);
+            const { addToast } = useContext(ToastContext);
+            
+            useEffect(() => {
+                let isMounted = true;
+                
+                const generateEssence = async () => {
+                    try {
+                        setLoading(true);
+                        setProgress(20);
+                        
+                        // Simulate progress for UX
+                        const progressInterval = setInterval(() => {
+                            setProgress(p => Math.min(p + 10, 80));
+                        }, 500);
+                        
+                        const ai = new AIService(settings.provider, settings.apiKey);
+                        const result = await ai.generateEssence(lesson.content);
+                        
+                        clearInterval(progressInterval);
+                        
+                        if (isMounted) {
+                            setEssence(result);
+                            setProgress(100);
+                            setTimeout(() => setLoading(false), 300);
+                        }
+                    } catch (error) {
+                        if (isMounted) {
+                            console.error('Essence Generation Error:', error);
+                            addToast('Failed to generate summary. Please check your API settings.', 'error');
+                            setEssence({
+                                title: lesson.title,
+                                takeaways: ['Unable to generate AI summary. Please check settings.'],
+                                summary: ''
+                            });
+                            setLoading(false);
+                        }
+                    }
+                };
+                
+                if (settings.apiKey) {
+                    generateEssence();
+                } else {
+                    setEssence({
+                        title: lesson.title,
+                        takeaways: ['Configure AI settings to see generated insights'],
+                        summary: 'Add your API key in settings to enable AI features.'
+                    });
+                    setLoading(false);
+                }
+                
+                return () => { isMounted = false; };
+            }, [lesson, settings, addToast]);
+            
+            if (loading) {
+                return (
+                    <Card className="mb-6 border-2 border-amber-200 dark:border-amber-800" padding="large">
+                        <div className="flex items-center gap-4 mb-6">
+                            <div className="w-12 h-12 bg-amber-100 dark:bg-amber-900 rounded-full animate-pulse"></div>
+                            <div className="flex-1">
+                                <div className="h-6 bg-amber-100 dark:bg-amber-900 rounded w-2/3 mb-2 animate-pulse"></div>
+                                <div className="h-4 bg-amber-50 dark:bg-amber-950 rounded w-1/3 animate-pulse"></div>
+                            </div>
+                        </div>
+                        
+                        <div className="w-full bg-gray-200 dark:bg-slate-700 rounded-full h-2 mb-6">
+                            <div 
+                                className="bg-amber-500 h-2 rounded-full transition-all duration-500"
+                                style={{ width: `${progress}%` }}
+                            ></div>
+                        </div>
+                        
+                        <div className="space-y-4">
+                            {[1,2,3,4].map(i => (
+                                <div key={i} className="flex gap-4">
+                                    <div className="w-8 h-8 rounded-full bg-amber-100 dark:bg-amber-900 animate-pulse flex-shrink-0"></div>
+                                    <div className="flex-1 h-4 bg-amber-50 dark:bg-amber-950 rounded animate-pulse mt-2"></div>
+                                </div>
+                            ))}
+                        </div>
+                    </Card>
+                );
+            }
+            
+            return (
+                <Card className="mb-8 border-2 border-amber-400 dark:border-amber-600 bg-gradient-to-br from-amber-50 to-orange-50 dark:from-slate-800 dark:to-slate-900 shadow-lg" padding="large">
+                    <div className="flex items-start justify-between mb-6">
+                        <div className="flex items-center gap-4">
+                            <div className="p-3 bg-amber-500 rounded-xl shadow-lg">
+                                <Icon name="Sparkles" className="text-white" size={28} />
+                            </div>
+                            <div>
+                                <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Lesson Essence</h2>
+                                <p className="text-amber-700 dark:text-amber-300 font-medium">AI-Generated Summary</p>
+                            </div>
+                        </div>
+                        
+                        <div className="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400 bg-white/50 dark:bg-slate-800/50 px-3 py-1 rounded-full">
+                            <Icon name="Clock" size={14} />
+                            {lesson.estimatedTime} min read
+                        </div>
+                    </div>
+                    
+                    <div className="mb-6">
+                        <h3 className="text-xl font-bold text-gray-800 dark:text-gray-200 mb-2 flex items-center gap-2">
+                            <Icon name="Bookmark" size={20} className="text-amber-600" />
+                            {essence?.title || lesson.title}
+                        </h3>
+                        {essence?.summary && (
+                            <p className="text-gray-600 dark:text-gray-300 leading-relaxed italic border-l-4 border-amber-300 pl-4">
+                                {essence.summary}
+                            </p>
+                        )}
+                    </div>
+                    
+                    <div className="space-y-4 mb-8">
+                        <h4 className="font-semibold text-gray-700 dark:text-gray-300 flex items-center gap-2">
+                            <Icon name="ListChecks" size={18} />
+                            Key Takeaways
+                        </h4>
+                        <div className="grid gap-3">
+                            {essence?.takeaways?.map((point, idx) => (
+                                <div 
+                                    key={idx} 
+                                    className="flex items-start gap-4 p-4 bg-white/70 dark:bg-slate-800/70 rounded-lg border border-amber-100 dark:border-amber-900/30 hover:shadow-md transition-shadow"
+                                >
+                                    <div className="flex-shrink-0 w-8 h-8 bg-amber-100 dark:bg-amber-900/50 text-amber-700 dark:text-amber-300 rounded-full flex items-center justify-center font-bold text-sm">
+                                        {idx + 1}
+                                    </div>
+                                    <p className="text-gray-700 dark:text-gray-300 leading-relaxed pt-1">{point}</p>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                    
+                    <div className="flex items-center justify-between pt-6 border-t border-amber-200 dark:border-amber-800/50">
+                        <div className="text-sm text-gray-500 dark:text-gray-400 flex items-center gap-4">
+                            <span className="flex items-center gap-1">
+                                <Icon name="FileText" size={14} />
+                                {lesson.wordCount?.toLocaleString()} words
+                            </span>
+                            <span className="flex items-center gap-1">
+                                <Icon name="Type" size={14} />
+                                {lesson.content?.length?.toLocaleString()} chars
+                            </span>
+                        </div>
+                        
+                        <Button 
+                            size="lg"
+                            className="bg-amber-500 hover:bg-amber-600 text-white shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 transition-all"
+                            onClick={onReadComplete}
+                            icon={<Icon name="BookOpen" size={20} />}
+                            iconPosition="right"
+                        >
+                            I Have Read This — Show Full Lesson
+                        </Button>
+                    </div>
+                </Card>
+            );
+        };
+
+        // Dialogue Bubble with Advanced Features
+        const DialogueBubble = ({ line, colorIndex, characterColors = {} }) => {
+            const [speaker, text] = useMemo(() => {
+                const colonMatch = line.match(/^([^:]+):\s*(.+)$/);
+                if (colonMatch) {
+                    return [colonMatch[1].trim(), colonMatch[2].trim()];
+                }
+                const quoteMatch = line.match(/^["'](.+)["']$/);
+                if (quoteMatch) {
+                    return ['Narrator', quoteMatch[1]];
+                }
+                return ['Text', line];
+            }, [line]);
+            
+            const colors = useMemo(() => [
+                { bg: 'bg-indigo-100 dark:bg-indigo-900/30', border: 'border-indigo-300 dark:border-indigo-700', text: 'text-indigo-800 dark:text-indigo-200', badge: 'bg-indigo-600' },
+                { bg: 'bg-emerald-100 dark:bg-emerald-900/30', border: 'border-emerald-300 dark:border-emerald-700', text: 'text-emerald-800 dark:text-emerald-200', badge: 'bg-emerald-600' },
+                { bg: 'bg-rose-100 dark:bg-rose-900/30', border: 'border-rose-300 dark:border-rose-700', text: 'text-rose-800 dark:text-rose-200', badge: 'bg-rose-600' },
+                { bg: 'bg-amber-100 dark:bg-amber-900/30', border: 'border-amber-300 dark:border-amber-700', text: 'text-amber-800 dark:text-amber-200', badge: 'bg-amber-600' },
+                { bg: 'bg-cyan-100 dark:bg-cyan-900/30', border: 'border-cyan-300 dark:border-cyan-700', text: 'text-cyan-800 dark:text-cyan-200', badge: 'bg-cyan-600' },
+                { bg: 'bg-purple-100 dark:bg-purple-900/30', border: 'border-purple-300 dark:border-purple-700', text: 'text-purple-800 dark:text-purple-200', badge: 'bg-purple-600' }
+            ], []);
+            
+            const theme = colors[colorIndex % colors.length];
+            const isNarrator = speaker === 'Narrator' || speaker === 'Text';
+            
+            if (isNarrator) {
+                return (
+                    <div className="my-6 text-gray-700 dark:text-gray-300 leading-loose text-lg">
+                        {line}
+                    </div>
+                );
+            }
+            
+            return (
+                <div className="flex items-start gap-4 my-6 group">
+                    <div className={`${theme.badge} text-white px-4 py-2 rounded-full text-sm font-bold flex-shrink-0 shadow-md group-hover:scale-105 transition-transform`}>
+                        {speaker}
+                    </div>
+                    <div className={`${theme.bg} ${theme.border} border-2 rounded-2xl rounded-tl-none px-6 py-4 flex-1 ${theme.text} shadow-sm hover:shadow-md transition-shadow relative speech-bubble`}>
+                        <p className="text-lg leading-relaxed">{text.replace(/^["']|["']$/g, '')}</p>
+                    </div>
+                </div>
+            );
+        };
+
+        // Main Lesson Reader Component
+        const LessonReader = ({ lesson, fontSize }) => {
+            const [searchTerm, setSearchTerm] = useState('');
+            const [highlights, setHighlights] = useState([]);
+            const [showSearch, setShowSearch] = useState(false);
+            const contentRef = useRef(null);
+            
+            useEffect(() => {
+                if (searchTerm && contentRef.current) {
+                    // Simple highlight implementation
+                    const text = lesson.content;
+                    const regex = new RegExp(`(${searchTerm})`, 'gi');
+                    // In real implementation, would use a proper highlighting library
+                }
+            }, [searchTerm, lesson]);
+            
+            const renderContent = useCallback((text) => {
+                const lines = text.split('\n').filter(line => line.trim());
+                let dialogueCount = 0;
+                
+                return lines.map((line, idx) => {
+                    const isDialogue = /^[^:]+:\s*["']/.test(line) || /^["']/.test(line) || /^[^:]+:\s+/.test(line);
+                    
+                    if (isDialogue && line.length < 400 && !line.match(/^[A-Z\s]+$/)) {
+                        return <DialogueBubble key={idx} line={line} colorIndex={dialogueCount++} />;
+                    }
+                    
+                    return (
+                        <p key={idx} className="mb-6 text-gray-700 dark:text-gray-300 leading-loose" style={{ fontSize: `${fontSize}px`, lineHeight: '1.8' }}>
+                            {line}
+                        </p>
+                    );
+                });
+            }, [fontSize]);
+            
+            return (
+                <Card className="relative" padding="large">
+                    {/* Toolbar */}
+                    <div className="flex items-center justify-between mb-6 pb-6 border-b border-gray-200 dark:border-slate-700">
+                        <div>
+                            <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-1">{lesson.title}</h2>
+                            <div className="flex items-center gap-4 text-sm text-gray-500 dark:text-gray-400">
+                                <span className="flex items-center gap-1">
+                                    <Icon name="Clock" size={14} />
+                                    {lesson.estimatedTime} min read
+                                </span>
+                                <span className="flex items-center gap-1">
+                                    <Icon name="Type" size={14} />
+                                    {lesson.wordCount} words
+                                </span>
+                            </div>
+                        </div>
+                        
+                        <div className="flex items-center gap-2">
+                            <Tooltip text="Search in lesson">
+                                <Button variant="ghost" size="sm" onClick={() => setShowSearch(!showSearch)}>
+                                    <Icon name="Search" size={18} />
+                                </Button>
+                            </Tooltip>
+                            <Tooltip text="Print lesson">
+                                <Button variant="ghost" size="sm" onClick={() => window.print()}>
+                                    <Icon name="Printer" size={18} />
+                                </Button>
+                            </Tooltip>
+                        </div>
+                    </div>
+                    
+                    {/* Search Bar */}
+                    {showSearch && (
+                        <div className="mb-6 p-4 bg-gray-50 dark:bg-slate-800 rounded-lg flex gap-2 animate-fade-in">
+                            <input
+                                type="text"
+                                placeholder="Search in lesson..."
+                                value={searchTerm}
+                                onChange={(e) => setSearchTerm(e.target.value)}
+                                className="flex-1 px-4 py-2 border border-gray-300 dark:border-slate-600 rounded-lg dark:bg-slate-700 dark:text-white"
+                                autoFocus
+                            />
+                            <Button variant="secondary" onClick={() => setSearchTerm('')}>Clear</Button>
+                        </div>
+                    )}
+                    
+                    {/* Content */}
+                    <div ref={contentRef} className="prose dark:prose-invert max-w-none">
+                        {renderContent(lesson.content)}
+                    </div>
+                    
+                    {/* Footer */}
+                    <div className="mt-8 pt-6 border-t border-gray-200 dark:border-slate-700 flex items-center justify-between text-sm text-gray-500 dark:text-gray-400">
+                        <span>End of lesson</span>
+                        <button onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })} className="flex items-center gap-1 hover:text-indigo-600 transition">
+                            <Icon name="ArrowUp" size={14} />
+                            Back to top
+                        </button>
+                    </div>
+                </Card>
+            );
+        };
+
+        // Q&A Panel with Advanced Features
+        const QAPanel = ({ lesson, settings }) => {
+            const [qaList, setQaList] = useState([]);
+            const [loading, setLoading] = useState(true);
+            const [generatingMore, setGeneratingMore] = useState(false);
+            const [filter, setFilter] = useState('all');
+            const [sortBy, setSortBy] = useState('default');
+            const { addToast } = useContext(ToastContext);
+            
+            useEffect(() => {
+                const initQA = async () => {
+                    setLoading(true);
+                    try {
+                        const ai = new AIService(settings.provider, settings.apiKey);
+                        const questions = await ai.generateQA(lesson.content, 6);
+                        setQaList(questions.map(q => ({ ...q, id: q.id || generateId() })));
+                    } catch (error) {
+                        addToast('Failed to generate questions', 'error');
+                    } finally {
+                        setLoading(false);
+                    }
+                };
+                
+                if (settings.apiKey) {
+                    initQA();
+                } else {
+                    setLoading(false);
+                }
+            }, [lesson, settings, addToast]);
+            
+            const handleGenerateMore = async () => {
+                setGeneratingMore(true);
+                try {
+                    const ai = new AIService(settings.provider, settings.apiKey);
+                    const existingQuestions = qaList.map(q => q.question);
+                    const newQuestions = await ai.generateQA(lesson.content, 3, existingQuestions);
+                    setQaList(prev => [...prev, ...newQuestions.map(q => ({ ...q, id: generateId() }))]);
+                    addToast('Generated 3 more questions!', 'success');
+                } catch (error) {
+                    addToast('Failed to generate more questions', 'error');
+                } finally {
+                    setGeneratingMore(false);
+                }
+            };
+            
+            const filteredQA = useMemo(() => {
+                let filtered = qaList;
+                if (filter !== 'all') {
+                    filtered = qaList.filter(q => q.difficulty === filter || q.category === filter);
+                }
+                if (sortBy === 'difficulty') {
+                    const order = { easy: 1, medium: 2, hard: 3 };
+                    filtered = [...filtered].sort((a, b) => (order[a.difficulty] || 0) - (order[b.difficulty] || 0));
+                }
+                return filtered;
+            }, [qaList, filter, sortBy]);
+            
+            if (loading) {
+                return (
+                    <div className="mt-8">
+                        <div className="flex items-center gap-3 mb-6">
+                            <div className="w-10 h-10 bg-indigo-100 dark:bg-indigo-900 rounded-lg animate-pulse"></div>
+                            <div className="h-8 bg-indigo-100 dark:bg-indigo-900 rounded w-1/3 animate-pulse"></div>
+                        </div>
+                        <div className="space-y-4">
+                            {[1,2,3].map(i => (
+                                <div key={i} className="h-32 bg-gray-100 dark:bg-slate-800 rounded-xl animate-pulse"></div>
+                            ))}
+                        </div>
+                    </div>
+                );
+            }
+            
+            return (
+                <div className="mt-8">
+                    <div className="flex items-center justify-between mb-6">
+                        <div className="flex items-center gap-3">
+                            <div className="p-2 bg-indigo-100 dark:bg-indigo-900 rounded-lg">
+                                <Icon name="HelpCircle" className="text-indigo-600 dark:text-indigo-400" size={24} />
+                            </div>
+                            <div>
+                                <h3 className="text-xl font-bold text-gray-900 dark:text-white">Comprehension Questions</h3>
+                                <p className="text-sm text-gray-500 dark:text-gray-400">{qaList.length} questions generated</p>
+                            </div>
+                        </div>
+                        
+                        <div className="flex items-center gap-2">
+                            <select 
+                                value={filter} 
+                                onChange={(e) => setFilter(e.target.value)}
+                                className="px-3 py-2 border border-gray-300 dark:border-slate-600 rounded-lg text-sm dark:bg-slate-800 dark:text-white"
+                            >
+                                <option value="all">All Questions</option>
+                                <option value="easy">Easy</option>
+                                <option value="medium">Medium</option>
+                                <option value="hard">Hard</option>
+                            </select>
+                            
+                            <Button 
+                                variant="secondary" 
+                                size="sm"
+                                onClick={handleGenerateMore}
+                                loading={generatingMore}
+                            >
+                                <Icon name="Plus" size={16} />
+                                More
+                            </Button>
+                        </div>
+                    </div>
+                    
+                    <div className="space-y-4">
+                        {filteredQA.map((item, idx) => (
+                            <QAAccordionCard key={item.id} item={item} index={idx} />
+                        ))}
+                    </div>
+                    
+                    {qaList.length === 0 && !loading && (
+                        <div className="text-center py-12 bg-gray-50 dark:bg-slate-800 rounded-xl border-2 border-dashed border-gray-300 dark:border-slate-700">
+                            <Icon name="HelpCircle" size={48} className="mx-auto text-gray-400 mb-4" />
+                            <p className="text-gray-600 dark:text-gray-400">No questions available. Configure AI settings to generate Q&A.</p>
+                        </div>
+                    )}
+                </div>
+            );
+        };
+
+        // Enhanced Q&A Accordion Card
+        const QAAccordionCard = ({ item, index }) => {
+            const [isOpen, setIsOpen] = useState(index === 0);
+            const [showBengali, setShowBengali] = useState(true);
+            const [copied, setCopied] = useState(false);
+            
+            const copyToClipboard = (text) => {
+                navigator.clipboard.writeText(text);
+                setCopied(true);
+                setTimeout(() => setCopied(false), 2000);
+            };
+            
+            const difficultyColors = {
+                easy: 'green',
+                medium: 'yellow',
+                hard: 'red'
+            };
+            
+            const categoryIcons = {
+                vocabulary: 'Type',
+                comprehension: 'BookOpen',
+                inference: 'Brain',
+                analysis: 'BarChart'
+            };
+            
+            return (
+                <div className="border border-gray-200 dark:border-slate-700 rounded-xl overflow-hidden bg-white dark:bg-slate-800 shadow-sm hover:shadow-md transition-shadow">
+                    <button
+                        onClick={() => setIsOpen(!isOpen)}
+                        className="w-full px-6 py-4 flex items-center justify-between bg-gray-50 dark:bg-slate-700/50 hover:bg-gray-100 dark:hover:bg-slate-700 transition-colors text-left"
+                    >
+                        <div className="flex items-center gap-4 flex-1">
+                            <span className="w-8 h-8 bg-indigo-100 dark:bg-indigo-900 text-indigo-700 dark:text-indigo-300 rounded-full flex items-center justify-center text-sm font-bold flex-shrink-0">
+                                {index + 1}
+                            </span>
+                            <div className="flex-1">
+                                <div className="font-semibold text-gray-900 dark:text-white text-lg mb-1">
+                                    {item.question}
+                                </div>
+                                <div className="flex items-center gap-2">
+                                    {item.difficulty && (
+                                        <Badge color={difficultyColors[item.difficulty]} size="sm">
+                                            {item.difficulty}
+                                        </Badge>
+                                    )}
+                                    {item.category && (
+                                        <span className="text-xs text-gray-500 dark:text-gray-400 flex items-center gap-1">
+                                            <Icon name={categoryIcons[item.category] || 'Tag'} size={12} />
+                                            {item.category}
+                                        </span>
+                                    )}
+                                </div>
+                            </div>
+                        </div>
+                        <div className="flex items-center gap-2">
+                            <Icon 
+                                name={isOpen ? "ChevronUp" : "ChevronDown"} 
+                                size={20} 
+                                className="text-gray-500 dark:text-gray-400 transition-transform"
+                            />
+                        </div>
+                    </button>
+                    
+                    <div className={`accordion-content ${isOpen ? 'open' : ''}`}>
+                        <div className="p-6 space-y-6 bg-white dark:bg-slate-800">
+                            {/* English Answer */}
+                            <div className="relative group">
+                                <div className="flex items-center justify-between mb-2">
+                                    <div className="text-xs font-bold text-indigo-600 dark:text-indigo-400 uppercase tracking-wider flex items-center gap-2">
+                                        <Icon name="Globe" size={14} />
+                                        English Answer
+                                    </div>
+                                    <button 
+                                        onClick={() => copyToClipboard(item.english)}
+                                        className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition"
+                                        title="Copy to clipboard"
+                                    >
+                                        <Icon name={copied ? "Check" : "Copy"} size={16} />
+                                    </button>
+                                </div>
+                                <div className="bg-indigo-50/50 dark:bg-indigo-900/20 border-l-4 border-indigo-500 pl-4 py-3 pr-4 rounded-r-lg">
+                                    <p className="text-gray-800 dark:text-gray-200 leading-relaxed text-lg">{item.english}</p>
+                                </div>
+                            </div>
+                            
+                            {/* Bengali Answer */}
+                            <div className="relative">
+                                <div className="flex items-center justify-between mb-2">
+                                    <div className="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider flex items-center gap-2">
+                                        <Icon name="Languages" size={14} />
+                                        Bengali Answer
+                                    </div>
+                                    <button
+                                        onClick={() => setShowBengali(!showBengali)}
+                                        className="text-xs text-indigo-600 dark:text-indigo-400 hover:text-indigo-700 dark:hover:text-indigo-300 font-medium"
+                                    >
+                                        {showBengali ? 'Hide' : 'Show'} Translation
+                                    </button>
+                                </div>
+                                
+                                {showBengali && (
+                                    <div className="bg-gray-50 dark:bg-slate-700/50 border-l-4 border-gray-400 dark:border-gray-500 pl-4 py-3 pr-4 rounded-r-lg animate-fade-in">
+                                        <p className="text-bengali text-gray-600 dark:text-gray-300 italic leading-loose text-lg">
+                                            {item.bengali}
+                                        </p>
+                                    </div>
+                                )}
+                            </div>
+                            
+                            {/* Actions */}
+                            <div className="flex items-center justify-end gap-2 pt-4 border-t border-gray-100 dark:border-slate-700">
+                                <Button variant="ghost" size="sm">
+                                    <Icon name="ThumbsUp" size={16} className="mr-1" />
+                                    Helpful
+                                </Button>
+                                <Button variant="ghost" size="sm">
+                                    <Icon name="Share2" size={16} className="mr-1" />
+                                    Share
+                                </Button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            );
+        };
+
+        // Ask Question Component with Chat Interface
+        const AskQuestionBox = ({ lesson, settings }) => {
+            const [question, setQuestion] = useState('');
+            const [history, setHistory] = useState([]);
+            const [loading, setLoading] = useState(false);
+            const [suggestions] = useState([
+                'What is the main theme?',
+                'Explain the vocabulary',
+                'Summarize in simple words',
+                'Who are the characters?'
+            ]);
+            const scrollRef = useRef(null);
+            const { addToast } = useContext(ToastContext);
+            
+            useEffect(() => {
+                if (scrollRef.current) {
+                    scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
+                }
+            }, [history]);
+            
+            const handleSubmit = async (e) => {
+                e.preventDefault();
+                if (!question.trim() || loading) return;
+                
+                setLoading(true);
+                const userQuestion = question.trim();
+                setQuestion('');
+                
+                try {
+                    const ai = new AIService(settings.provider, settings.apiKey);
+                    const answer = await ai.answerQuestion(userQuestion, lesson.content);
+                    
+                    const newEntry = {
+                        id: generateId(),
+                        question: userQuestion,
+                        ...answer,
+                        timestamp: new Date().toISOString()
+                    };
+                    
+                    setHistory(prev => [newEntry, ...prev].slice(0, 10));
+                } catch (error) {
+                    addToast('Failed to get answer. Please check your connection.', 'error');
+                } finally {
+                    setLoading(false);
+                }
+            };
+            
+            return (
+                <Card className="mt-8" padding="large">
+                    <div className="flex items-center gap-3 mb-6">
+                        <div className="p-2 bg-indigo-100 dark:bg-indigo-900 rounded-lg">
+                            <Icon name="MessageCircle" className="text-indigo-600 dark:text-indigo-400" size={24} />
+                        </div>
+                        <div>
+                            <h3 className="text-xl font-bold text-gray-900 dark:text-white">Ask Your Own Question</h3>
+                            <p className="text-sm text-gray-500 dark:text-gray-400">Get answers in English and Bengali</p>
+                        </div>
+                    </div>
+                    
+                    {/* Suggestions */}
+                    <div className="flex flex-wrap gap-2 mb-4">
+                        {suggestions.map((suggestion, idx) => (
+                            <button
+                                key={idx}
+                                onClick={() => setQuestion(suggestion)}
+                                className="px-3 py-1.5 text-sm bg-gray-100 dark:bg-slate-700 text-gray-700 dark:text-gray-300 rounded-full hover:bg-gray-200 dark:hover:bg-slate-600 transition"
+                            >
+                                {suggestion}
+                            </button>
+                        ))}
+                    </div>
+                    
+                    {/* Input */}
+                    <form onSubmit={handleSubmit} className="mb-6">
+                        <div className="flex gap-2">
+                            <div className="relative flex-1">
+                                <input
+                                    type="text"
+                                    value={question}
+                                    onChange={(e) => setQuestion(e.target.value)}
+                                    placeholder="Type your question here..."
+                                    className="w-full pl-4 pr-12 py-3 border border-gray-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent dark:bg-slate-800 dark:text-white text-lg"
+                                />
+                                <div className="absolute right-3 top-3.5 text-gray-400">
+                                    <Icon name="HelpCircle" size={20} />
+                                </div>
+                            </div>
+                            <Button 
+                                type="submit"
+                                disabled={!question.trim() || loading}
+                                loading={loading}
+                                className="px-6"
+                            >
+                                <Icon name="Send" size={20} />
+                            </Button>
+                        </div>
+                    </form>
+                    
+                    {/* History */}
+                    <div ref={scrollRef} className="space-y-4 max-h-[500px] overflow-y-auto pr-2">
+                        {history.length === 0 && (
+                            <div className="text-center py-8 text-gray-400 dark:text-gray-500">
+                                <Icon name="MessagesSquare" size={48} className="mx-auto mb-3 opacity-50" />
+                                <p>No questions yet. Ask something about this lesson!</p>
+                            </div>
+                        )}
+                        
+                        {history.map((item) => (
+                            <div key={item.id} className="bg-gray-50 dark:bg-slate-700/50 rounded-xl p-5 border border-gray-100 dark:border-slate-700 animate-slide-up">
+                                <div className="flex items-start gap-3 mb-4">
+                                    <div className="w-8 h-8 bg-indigo-100 dark:bg-indigo-900 rounded-full flex items-center justify-center flex-shrink-0">
+                                        <Icon name="User" size={16} className="text-indigo-600 dark:text-indigo-400" />
+                                    </div>
+                                    <div className="flex-1">
+                                        <p className="font-medium text-gray-900 dark:text-white text-lg">{item.question}</p>
+                                        <span className="text-xs text-gray-400">{formatDate(item.timestamp)}</span>
+                                    </div>
+                                </div>
+                                
+                                <div className="space-y-3 ml-11">
+                                    <div className="bg-white dark:bg-slate-800 p-4 rounded-lg border-l-4 border-indigo-500 shadow-sm">
+                                        <div className="text-xs font-bold text-indigo-600 dark:text-indigo-400 mb-1 uppercase tracking-wide">English</div>
+                                        <p className="text-gray-800 dark:text-gray-200 leading-relaxed">{item.english}</p>
+                                    </div>
+                                    
+                                    <div className="bg-white dark:bg-slate-800 p-4 rounded-lg border-l-4 border-gray-400 dark:border-gray-500 shadow-sm">
+                                        <div className="text-xs font-bold text-gray-500 dark:text-gray-400 mb-1 uppercase tracking-wide">বাংলা</div>
+                                        <p className="text-bengali text-gray-600 dark:text-gray-300 italic leading-loose text-lg">{item.bengali}</p>
+                                    </div>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                </Card>
+            );
+        };
+
+        // ==========================================
+        // MAIN APPLICATION COMPONENT
+        // ==========================================
+
+        const App = () => {
+            const [state, dispatch] = useReducer(appReducer, initialState);
+            const [settings, setSettings] = useLocalStorage(CONFIG.STORAGE_KEYS.SETTINGS, {
+                provider: 'openai',
+                apiKey: '',
+                theme: 'light',
+                fontSize: 18
+            });
+            const [settingsOpen, setSettingsOpen] = useState(false);
+            const [sidebarOpen, setSidebarOpen] = useState(true);
+            const isMobile = useMediaQuery('(max-width: 768px)');
+            
+            // Apply theme
+            useEffect(() => {
+                if (settings.theme === 'dark' || (settings.theme === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+                    document.documentElement.classList.add('dark');
+                } else {
+                    document.documentElement.classList.remove('dark');
+                }
+            }, [settings.theme]);
+            
+            // Keyboard shortcuts
+            useKeyboardShortcut('ctrl+/', () => setSettingsOpen(true));
+            useKeyboardShortcut('ctrl+b', () => setSidebarOpen(prev => !prev));
+            
+            const handleUpload = useCallback((lessons, metadata) => {
+                dispatch({ type: ACTIONS.SET_LESSONS, payload: lessons });
+                dispatch({ 
+                    type: ACTIONS.ADD_HISTORY, 
+                    payload: { 
+                        id: generateId(), 
+                        date: new Date().toISOString(),
+                        fileName: metadata.fileName,
+                        lessonCount: lessons.length,
+                        totalPages: metadata.totalPages
+                    }
+                });
+            }, []);
+            
+            const handleSelectLesson = useCallback((lesson) => {
+                dispatch({ type: ACTIONS.SELECT_LESSON, payload: lesson });
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            }, []);
+            
+            const handleReadComplete = useCallback(() => {
+                // Transition state could be added here
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            }, []);
+            
+            // Close sidebar on mobile when lesson selected
+            useEffect(() => {
+                if (isMobile && state.selectedLesson) {
+                    setSidebarOpen(false);
+                }
+            }, [state.selectedLesson, isMobile]);
+            
+            return (
+                <SettingsContext.Provider value={{ settings, setSettings }}>
+                    <ToastProvider>
+                        <div className={`min-h-screen bg-gray-50 dark:bg-slate-900 transition-colors duration-300 ${settings.fontSize ? `text-[${settings.fontSize}px]` : ''}`}>
+                            {/* Header */}
+                            <header className="sticky top-0 z-40 bg-white/80 dark:bg-slate-900/80 backdrop-blur-md border-b border-gray-200 dark:border-slate-700">
+                                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+                                    <div className="flex items-center gap-3">
+                                        <button
+                                            onClick={() => setSidebarOpen(!sidebarOpen)}
+                                            className="p-2 hover:bg-gray-100 dark:hover:bg-slate-800 rounded-lg transition lg:hidden"
+                                        >
+                                            <Icon name={sidebarOpen ? "PanelLeftClose" : "PanelLeft"} size={24} className="text-gray-600 dark:text-gray-400" />
+                                        </button>
+                                        
+                                        <div className="flex items-center gap-3">
+                                            <div className="w-10 h-10 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-xl flex items-center justify-center shadow-lg">
+                                                <Icon name="BookOpen" className="text-white" size={24} />
+                                            </div>
+                                            <div className="hidden sm:block">
+                                                <h1 className="text-xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">
+                                                    {CONFIG.APP_NAME}
+                                                </h1>
+                                                <p className="text-xs text-gray-500 dark:text-gray-400 -mt-1">AI-Powered Learning</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div className="flex items-center gap-2">
+                                        <Tooltip text="Toggle Theme (Ctrl+T)">
+                                            <button
+                                                onClick={() => setSettings({
+                                                    ...settings, 
+                                                    theme: settings.theme === 'light' ? 'dark' : 'light'
+                                                })}
+                                                className="p-2 hover:bg-gray-100 dark:hover:bg-slate-800 rounded-lg transition"
+                                            >
+                                                <Icon 
+                                                    name={settings.theme === 'light' ? "Moon" : "Sun"} 
+                                                    size={20} 
+                                                    className="text-gray-600 dark:text-gray-400" 
+                                                />
+                                            </button>
+                                        </Tooltip>
+                                        
+                                        <Tooltip text="Settings (Ctrl+/)">
+                                            <button
+                                                onClick={() => setSettingsOpen(true)}
+                                                className="p-2 hover:bg-gray-100 dark:hover:bg-slate-800 rounded-lg transition"
+                                            >
+                                                <Icon name="Settings" size={20} className="text-gray-600 dark:text-gray-400" />
+                                            </button>
+                                        </Tooltip>
+                                    </div>
+                                </div>
+                            </header>
+                            
+                            <SettingsPanel isOpen={settingsOpen} onClose={() => setSettingsOpen(false)} />
+                            
+                            <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+                                {!state.lessons.length ? (
+                                    <div className="mt-12 animate-fade-in">
+                                        <div className="text-center mb-12">
+                                            <h2 className="text-4xl font-bold text-gray-900 dark:text-white mb-4">
+                                                Start Your Learning Journey
+                                            </h2>
+                                            <p className="text-xl text-gray-600 dark:text-gray-300 max-w-2xl mx-auto leading-relaxed">
+                                                Upload your English textbook and get AI-generated summaries, 
+                                                bilingual Q&A, and character relationship maps.
+                                            </p>
+                                            
+                                            <div className="flex justify-center gap-6 mt-8">
+                                                <div className="flex items-center gap-2 text-gray-500 dark:text-gray-400">
+                                                    <Icon name="Brain" size={20} />
+                                                    <span>AI-Powered</span>
+                                                </div>
+                                                <div className="flex items-center gap-2 text-gray-500 dark:text-gray-400">
+                                                    <Icon name="Languages" size={20} />
+                                                    <span>English + Bengali</span>
+                                                </div>
+                                                <div className="flex items-center gap-2 text-gray-500 dark:text-gray-400">
+                                                    <Icon name="Shield" size={20} />
+                                                    <span>Private & Secure</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        
+                                        <PDFUploader onUpload={handleUpload} />
+                                        
+                                        {/* Features Grid */}
+                                        <div className="grid md:grid-cols-3 gap-6 mt-16 max-w-5xl mx-auto">
+                                            {[
+                                                {
+                                                    icon: 'Sparkles',
+                                                    title: 'Smart Summaries',
+                                                    desc: 'AI-generated lesson essence with key takeaways'
+                                                },
+                                                {
+                                                    icon: 'Users',
+                                                    title: 'Character Maps',
+                                                    desc: 'Visual family trees and relationship diagrams'
+                                                },
+                                                {
+                                                    icon: 'MessageCircle',
+                                                    title: 'Bilingual Q&A',
+                                                    desc: 'Ask questions get answers in English and Bengali'
+                                                }
+                                            ].map((feature, idx) => (
+                                                <Card key={idx} className="text-center hover-lift" padding="large">
+                                                    <div className="w-14 h-14 bg-indigo-100 dark:bg-indigo-900 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                                                        <Icon name={feature.icon} className="text-indigo-600 dark:text-indigo-400" size={28} />
+                                                    </div>
+                                                    <h3 className="font-bold text-gray-900 dark:text-white mb-2">{feature.title}</h3>
+                                                    <p className="text-gray-600 dark:text-gray-400 text-sm">{feature.desc}</p>
+                                                </Card>
+                                            ))}
+                                        </div>
+                                    </div>
+                                ) : (
+                                    <div className="flex gap-8">
+                                        {/* Sidebar */}
+                                        <aside className={`
+                                            fixed lg:sticky top-24 left-0 h-[calc(100vh-6rem)] 
+                                            w-80 bg-white dark:bg-slate-800 lg:bg-transparent lg:dark:bg-transparent 
+                                            transform transition-transform duration-300 z-30
+                                            lg:transform-none lg:w-64 flex-shrink-0
+                                            ${sidebarOpen ? 'translate-x-0' : '-translate-x-full lg:hidden'}
+                                            border-r lg:border-0 border-gray-200 dark:border-slate-700 shadow-xl lg:shadow-none
+                                            overflow-hidden flex flex-col
+                                        `}>
+                                            <Card className="h-full flex flex-col overflow-hidden" padding="none">
+                                                <div className="p-4 border-b border-gray-200 dark:border-slate-700 bg-gray-50 dark:bg-slate-700/50">
+                                                    <div className="flex items-center justify-between mb-2">
+                                                        <h3 className="font-bold text-gray-800 dark:text-white flex items-center gap-2">
+                                                            <Icon name="List" size={18} />
+                                                            Lessons
+                                                        </h3>
+                                                        <Badge color="indigo" size="sm">{state.lessons.length}</Badge>
+                                                    </div>
+                                                    <div className="relative">
+                                                        <Icon name="Search" size={14} className="absolute left-2.5 top-2.5 text-gray-400" />
+                                                        <input
+                                                            type="text"
+                                                            placeholder="Filter lessons..."
+                                                            className="w-full pl-8 pr-3 py-1.5 text-sm border border-gray-300 dark:border-slate-600 rounded-lg dark:bg-slate-800 dark:text-white"
+                                                        />
+                                                    </div>
+                                                </div>
+                                                
+                                                <div className="flex-1 overflow-y-auto p-2 space-y-1">
+                                                    {state.lessons.map((lesson, idx) => (
+                                                        <button
+                                                            key={lesson.id}
+                                                            onClick={() => handleSelectLesson(lesson)}
+                                                            className={`
+                                                                w-full text-left p-3 rounded-lg transition-all text-sm group
+                                                                ${state.selectedLesson?.id === lesson.id
+                                                                    ? 'bg-indigo-50 dark:bg-indigo-900/30 border-indigo-200 dark:border-indigo-800 border text-indigo-700 dark:text-indigo-300 shadow-sm'
+                                                                    : 'hover:bg-gray-50 dark:hover:bg-slate-700/50 text-gray-700 dark:text-gray-300 border border-transparent'
+                                                                }
+                                                            `}
+                                                        >
+                                                            <div className="font-medium line-clamp-2 mb-1">{lesson.title}</div>
+                                                            <div className="flex items-center gap-2 text-xs opacity-60">
+                                                                <span className="flex items-center gap-1">
+                                                                    <Icon name="Clock" size={10} />
+                                                                    {lesson.estimatedTime}m
+                                                                </span>
+                                                                <span>•</span>
+                                                                <span>{lesson.wordCount} words</span>
+                                                            </div>
+                                                        </button>
+                                                    ))}
+                                                </div>
+                                                
+                                                <div className="p-4 border-t border-gray-200 dark:border-slate-700 bg-gray-50 dark:bg-slate-700/50">
+                                                    <Button 
+                                                        variant="secondary" 
+                                                        size="sm" 
+                                                        className="w-full"
+                                                        onClick={() => { 
+                                                            dispatch({ type: ACTIONS.SET_LESSONS, payload: [] });
+                                                            setSidebarOpen(false);
+                                                        }}
+                                                    >
+                                                        <Icon name="Upload" size={16} />
+                                                        New PDF
+                                                    </Button>
+                                                </div>
+                                            </Card>
+                                        </aside>
+                                        
+                                        {/* Mobile Overlay */}
+                                        {sidebarOpen && isMobile && (
+                                            <div 
+                                                className="fixed inset-0 bg-black/20 z-20 lg:hidden"
+                                                onClick={() => setSidebarOpen(false)}
+                                            />
+                                        )}
+                                        
+                                        {/* Main Content */}
+                                        <div className="flex-1 min-w-0">
+                                            {!state.selectedLesson ? (
+                                                <div className="flex flex-col items-center justify-center h-96 text-center animate-fade-in">
+                                                    <div className="w-24 h-24 bg-gray-100 dark:bg-slate-800 rounded-full flex items-center justify-center mb-6">
+                                                        <Icon name="BookOpen" size={40} className="text-gray-400 dark:text-gray-600" />
+                                                    </div>
+                                                    <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">Select a Lesson</h3>
+                                                    <p className="text-gray-500 dark:text-gray-400 max-w-md">
+                                                        Choose a lesson from the sidebar to view AI-generated summaries, 
+                                                        character relationships, and comprehension questions.
+                                                    </p>
+                                                </div>
+                                            ) : (
+                                                <div className="space-y-6 animate-fade-in">
+                                                    <LessonEssenceCard 
+                                                        lesson={state.selectedLesson} 
+                                                        onReadComplete={handleReadComplete}
+                                                        settings={settings}
+                                                    />
+                                                    
+                                                    <FamilyTreeBox 
+                                                        lessonContent={state.selectedLesson.content}
+                                                        settings={settings}
+                                                    />
+                                                    
+                                                    <LessonReader 
+                                                        lesson={state.selectedLesson}
+                                                        fontSize={settings.fontSize}
+                                                    />
+                                                    
+                                                    <QAPanel 
+                                                        lesson={state.selectedLesson}
+                                                        settings={settings}
+                                                    />
+                                                    
+                                                    <AskQuestionBox 
+                                                        lesson={state.selectedLesson}
+                                                        settings={settings}
+                                                    />
+                                                </div>
+                                            )}
+                                        </div>
+                                    </div>
+                                )}
+                            </main>
+                            
+                            {/* Footer */}
+                            <footer className="border-t border-gray-200 dark:border-slate-800 mt-16 py-8 bg-white dark:bg-slate-900">
+                                <div className="max-w-7xl mx-auto px-4 text-center text-gray-500 dark:text-gray-400 text-sm">
+                                    <p className="flex items-center justify-center gap-2 mb-2">
+                                        <Icon name="GraduationCap" size={16} />
+                                        {CONFIG.APP_NAME} v{CONFIG.VERSION} — Built for Students
+                                    </p>
+                                    <p>Supporting English-Bengali bilingual education with AI</p>
+                                </div>
+                            </footer>
+                        </div>
+                    </ToastProvider>
+                </SettingsContext.Provider>
+            );
+        };
+
+        // Mount Application
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
+    </script>
+</body>
+</html>
